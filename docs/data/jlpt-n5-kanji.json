@@ -1,0 +1,2215 @@
+[
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "一",
+    "meanings": ["um"],
+    "examples": [],
+    "sortKey": "ひと",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["ひと-", "ひと.つ"],
+      "onYomi": ["イチ", "イツ"],
+      "radicals": ["一"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "七",
+    "meanings": ["Sete"],
+    "examples": [],
+    "sortKey": "なな",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["なな", "なな.つ", "なの"],
+      "onYomi": ["シチ"],
+      "radicals": ["一"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "万",
+    "meanings": ["dez mil"],
+    "examples": [],
+    "sortKey": "よろず",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["よろず"],
+      "onYomi": ["マン", "バン"],
+      "radicals": ["一"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "三",
+    "meanings": ["três"],
+    "examples": [],
+    "sortKey": "み",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["み", "み.つ", "みっ.つ"],
+      "onYomi": ["サン", "ゾウ"],
+      "radicals": ["一"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "上",
+    "meanings": [
+      "acima",
+      "para cima",
+      "sobre",
+      "subir",
+      "galgar",
+      "em cima",
+      "escalar"
+    ],
+    "examples": [],
+    "sortKey": "うえ",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": [
+        "うえ",
+        "-うえ",
+        "うわ-",
+        "かみ",
+        "あ.げる",
+        "-あ.げる",
+        "あ.がる",
+        "-あ.がる",
+        "あ.がり",
+        "-あ.がり",
+        "のぼ.る",
+        "のぼ.り",
+        "のぼ.せる",
+        "のぼ.す",
+        "たてまつ.る"
+      ],
+      "onYomi": ["ジョウ", "ショウ", "シャン"],
+      "radicals": ["一"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "下",
+    "meanings": ["baixo", "abaixo", "descende", "inferior", "sub", "sob"],
+    "examples": [],
+    "sortKey": "した",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": [
+        "した",
+        "しも",
+        "もと",
+        "さ.げる",
+        "さ.がる",
+        "くだ.る",
+        "くだ.り",
+        "くだ.す",
+        "-くだ.す",
+        "くだ.さる",
+        "お.ろす",
+        "お.りる"
+      ],
+      "onYomi": ["カ", "ゲ"],
+      "radicals": ["一"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "中",
+    "meanings": ["em", "interior", "médio", "meio", "centro"],
+    "examples": [],
+    "sortKey": "なか",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["なか", "うち", "あた.る"],
+      "onYomi": ["チュウ"],
+      "radicals": ["丨"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "九",
+    "meanings": ["nove"],
+    "examples": [],
+    "sortKey": "ここの",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["ここの", "ここの.つ"],
+      "onYomi": ["キュウ", "ク"],
+      "radicals": ["乙"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "二",
+    "meanings": ["dois"],
+    "examples": [],
+    "sortKey": "ふた",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["ふた", "ふた.つ", "ふたたび"],
+      "onYomi": ["ニ", "ジ"],
+      "radicals": ["二"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "五",
+    "meanings": ["cinco"],
+    "examples": [],
+    "sortKey": "いつ",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["いつ", "いつ.つ"],
+      "onYomi": ["ゴ"],
+      "radicals": ["二"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "人",
+    "meanings": ["pessoa"],
+    "examples": [],
+    "sortKey": "ひと",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["ひと", "-り", "-と"],
+      "onYomi": ["ジン", "ニン"],
+      "radicals": ["人"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "今",
+    "meanings": ["agora"],
+    "examples": [],
+    "sortKey": "いま",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["いま"],
+      "onYomi": ["コン", "キン"],
+      "radicals": ["人"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "休",
+    "meanings": ["descanso", "dia desligado", "aposentar", "sono"],
+    "examples": [],
+    "sortKey": "やすむ",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["やす.む", "やす.まる", "やす.める"],
+      "onYomi": ["キュウ"],
+      "radicals": ["人"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "会",
+    "meanings": [
+      "encontro",
+      "reunião",
+      "festa",
+      "associação",
+      "entrevista",
+      "une"
+    ],
+    "examples": [],
+    "sortKey": "あう",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["あ.う", "あ.わせる", "あつ.まる"],
+      "onYomi": ["カイ", "エ"],
+      "radicals": ["人"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "何",
+    "meanings": ["que"],
+    "examples": [],
+    "sortKey": "なに",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["なに", "なん", "なに-", "なん-"],
+      "onYomi": ["カ"],
+      "radicals": ["人"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "先",
+    "meanings": ["antes", "prévio", "na frente", "futuro", "precedência"],
+    "examples": [],
+    "sortKey": "さき",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["さき", "ま.ず"],
+      "onYomi": ["セン"],
+      "radicals": ["儿"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "入",
+    "meanings": ["entrar", "inserir"],
+    "examples": [],
+    "sortKey": "いる",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["い.る", "-い.る", "-い.り", "い.れる", "-い.れ", "はい.る"],
+      "onYomi": ["ニュウ", "ジュ"],
+      "radicals": ["入"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "八",
+    "meanings": ["Oito"],
+    "examples": [],
+    "sortKey": "や",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["や", "や.つ", "やっ.つ", "よう"],
+      "onYomi": ["ハチ", "ハツ"],
+      "radicals": ["八"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "六",
+    "meanings": ["seis"],
+    "examples": [],
+    "sortKey": "む",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["む", "む.つ", "むっ.つ", "むい"],
+      "onYomi": ["ロク", "リク"],
+      "radicals": ["八"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "円",
+    "meanings": ["círculo", "iene", "redondo"],
+    "examples": [],
+    "sortKey": "まるい",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["まる.い", "まる", "まど", "まど.か", "まろ.やか"],
+      "onYomi": ["エン"],
+      "radicals": ["冂"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "出",
+    "meanings": ["saída", "deixa"],
+    "examples": [],
+    "sortKey": "でる",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["で.る", "-で", "だ.す", "-だ.す", "い.でる", "い.だす"],
+      "onYomi": ["シュツ", "スイ"],
+      "radicals": ["凵"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "分",
+    "meanings": [
+      "parte",
+      "minuto",
+      "segmento",
+      "grau",
+      "dever",
+      "compreender",
+      "saber",
+      "valor",
+      "1%",
+      "oportunidades",
+      "shaku/100"
+    ],
+    "examples": [],
+    "sortKey": "わける",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["わ.ける", "わ.け", "わ.かれる", "わ.かる", "わ.かつ"],
+      "onYomi": ["ブン", "フン", "ブ"],
+      "radicals": ["刀"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "前",
+    "meanings": ["em frente", "antes"],
+    "examples": [],
+    "sortKey": "まえ",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["まえ", "-まえ"],
+      "onYomi": ["ゼン"],
+      "radicals": ["刀"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "北",
+    "meanings": ["norte"],
+    "examples": [],
+    "sortKey": "きた",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["きた"],
+      "onYomi": ["ホク"],
+      "radicals": ["匕"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "十",
+    "meanings": ["dez"],
+    "examples": [],
+    "sortKey": "とお",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["とお", "と", "そ"],
+      "onYomi": ["ジュウ", "ジッ", "ジュッ"],
+      "radicals": ["十"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "千",
+    "meanings": ["Mil"],
+    "examples": [],
+    "sortKey": "ち",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["ち"],
+      "onYomi": ["セン"],
+      "radicals": ["十"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "午",
+    "meanings": ["meio-dia"],
+    "examples": [],
+    "sortKey": "うま",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["うま"],
+      "onYomi": ["ゴ"],
+      "radicals": ["十"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "半",
+    "meanings": ["metade", "médio", "número ímpar", "semi-", "parte-"],
+    "examples": [],
+    "sortKey": "なかば",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["なか.ば"],
+      "onYomi": ["ハン"],
+      "radicals": ["十"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "南",
+    "meanings": ["sul"],
+    "examples": [],
+    "sortKey": "みなみ",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["みなみ"],
+      "onYomi": ["ナン", "ナ"],
+      "radicals": ["十"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "友",
+    "meanings": ["amigo"],
+    "examples": [],
+    "sortKey": "とも",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["とも"],
+      "onYomi": ["ユウ"],
+      "radicals": ["又"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "口",
+    "meanings": ["boca"],
+    "examples": [],
+    "sortKey": "くち",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["くち"],
+      "onYomi": ["コウ", "ク"],
+      "radicals": ["口"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "古",
+    "meanings": ["velho"],
+    "examples": [],
+    "sortKey": "ふるい",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["ふる.い", "ふる-", "-ふる.す"],
+      "onYomi": ["コ"],
+      "radicals": ["口"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "右",
+    "meanings": ["Direita"],
+    "examples": [],
+    "sortKey": "みぎ",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["みぎ"],
+      "onYomi": ["ウ", "ユウ"],
+      "radicals": ["口"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "名",
+    "meanings": ["nome", "fama", "distinção", "reputação"],
+    "examples": [],
+    "sortKey": "な",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["な", "-な"],
+      "onYomi": ["メイ", "ミョウ"],
+      "radicals": ["口"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "四",
+    "meanings": ["quatro"],
+    "examples": [],
+    "sortKey": "よ",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["よ", "よ.つ", "よっ.つ", "よん"],
+      "onYomi": ["シ"],
+      "radicals": ["囗"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "国",
+    "meanings": ["País", "terra", "nação"],
+    "examples": [],
+    "sortKey": "くに",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["くに"],
+      "onYomi": ["コク"],
+      "radicals": ["囗"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "土",
+    "meanings": ["solo", "terra", "chão", "Turquia"],
+    "examples": [],
+    "sortKey": "つち",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["つち"],
+      "onYomi": ["ド", "ト"],
+      "radicals": ["土"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "外",
+    "meanings": ["Exterior"],
+    "examples": [],
+    "sortKey": "そと",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["そと", "ほか", "はず.す", "はず.れる", "と-"],
+      "onYomi": ["ガイ", "ゲ"],
+      "radicals": ["夕"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "多",
+    "meanings": ["muitos", "frequentar", "muito"],
+    "examples": [],
+    "sortKey": "おおい",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["おお.い", "まさ.に", "まさ.る"],
+      "onYomi": ["タ"],
+      "radicals": ["夕"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "大",
+    "meanings": ["grande", "enorme"],
+    "examples": [],
+    "sortKey": "おお",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["おお-", "おお.きい", "-おお.いに"],
+      "onYomi": ["ダイ", "タイ"],
+      "radicals": ["大"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "天",
+    "meanings": ["paraíso", "ceú", "imperiais"],
+    "examples": [],
+    "sortKey": "あまつ",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["あまつ", "あめ", "あま-"],
+      "onYomi": ["テン"],
+      "radicals": ["大"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "女",
+    "meanings": ["mulher", "fêmea"],
+    "examples": [],
+    "sortKey": "おんな",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["おんな", "め"],
+      "onYomi": ["ジョ", "ニョ", "ニョウ"],
+      "radicals": ["女"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "子",
+    "meanings": ["criança"],
+    "examples": [],
+    "sortKey": "こ",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["こ", "-こ", "ね"],
+      "onYomi": ["シ", "ス", "ツ"],
+      "radicals": ["子"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "学",
+    "meanings": ["estudo", "aprendizagem", "ciência"],
+    "examples": [],
+    "sortKey": "まなぶ",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["まな.ぶ"],
+      "onYomi": ["ガク"],
+      "radicals": ["子"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "安",
+    "meanings": [
+      "relaxar",
+      "calmo",
+      "baixo",
+      "barato",
+      "descansado",
+      "pacífico",
+      "satisfeito"
+    ],
+    "examples": [],
+    "sortKey": "やすい",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["やす.い", "やす.まる", "やす", "やす.らか"],
+      "onYomi": ["アン"],
+      "radicals": ["宀"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "小",
+    "meanings": ["Pequeno", "pouco"],
+    "examples": [],
+    "sortKey": "ちいさい",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["ちい.さい", "こ-", "お-", "さ-"],
+      "onYomi": ["ショウ"],
+      "radicals": ["小"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "少",
+    "meanings": ["poucos", "pequenos"],
+    "examples": [],
+    "sortKey": "すくない",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["すく.ない", "すこ.し"],
+      "onYomi": ["ショウ"],
+      "radicals": ["小"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "山",
+    "meanings": ["montanha"],
+    "examples": [],
+    "sortKey": "やま",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["やま"],
+      "onYomi": ["サン", "セン"],
+      "radicals": ["山"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "川",
+    "meanings": ["corrente", "rio"],
+    "examples": [],
+    "sortKey": "かわ",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["かわ"],
+      "onYomi": ["セン"],
+      "radicals": ["巛"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "左",
+    "meanings": ["Esquerda"],
+    "examples": [],
+    "sortKey": "ひだり",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["ひだり"],
+      "onYomi": ["サ", "シャ"],
+      "radicals": ["工"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "年",
+    "meanings": ["Ano"],
+    "examples": [],
+    "sortKey": "とし",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["とし"],
+      "onYomi": ["ネン"],
+      "radicals": ["干"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "店",
+    "meanings": ["loja", "comércio"],
+    "examples": [],
+    "sortKey": "みせ",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["みせ", "たな"],
+      "onYomi": ["テン"],
+      "radicals": ["广"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "後",
+    "meanings": ["atrás", "costas", "mais tarde"],
+    "examples": [],
+    "sortKey": "のち",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["のち", "うし.ろ", "うしろ", "あと", "おく.れる"],
+      "onYomi": ["ゴ", "コウ"],
+      "radicals": ["彳"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "手",
+    "meanings": ["mão"],
+    "examples": [],
+    "sortKey": "て",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["て", "て-", "-て", "た-"],
+      "onYomi": ["シュ", "ズ"],
+      "radicals": ["手"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "新",
+    "meanings": ["novo"],
+    "examples": [],
+    "sortKey": "あたらしい",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["あたら.しい", "あら.た", "あら-", "にい-"],
+      "onYomi": ["シン"],
+      "radicals": ["斤"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "日",
+    "meanings": ["dia", "sol", "Japão"],
+    "examples": [],
+    "sortKey": "ひ",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["ひ", "-び", "-か"],
+      "onYomi": ["ニチ", "ジツ"],
+      "radicals": ["日"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "時",
+    "meanings": ["tempo", "hora"],
+    "examples": [],
+    "sortKey": "とき",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["とき", "-どき"],
+      "onYomi": ["ジ"],
+      "radicals": ["日"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "書",
+    "meanings": ["escrever"],
+    "examples": [],
+    "sortKey": "かく",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["か.く", "-が.き", "-がき"],
+      "onYomi": ["ショ"],
+      "radicals": ["曰"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "月",
+    "meanings": ["mês", "lua"],
+    "examples": [],
+    "sortKey": "つき",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["つき"],
+      "onYomi": ["ゲツ", "ガツ"],
+      "radicals": ["月"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "木",
+    "meanings": ["árvore", "madeira"],
+    "examples": [],
+    "sortKey": "き",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["き", "こ-"],
+      "onYomi": ["ボク", "モク"],
+      "radicals": ["木"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "本",
+    "meanings": [
+      "livro",
+      "presente",
+      "real",
+      "verdadeiro",
+      "principal",
+      "sufixo p/ contagem De coisas longas"
+    ],
+    "examples": [],
+    "sortKey": "もと",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["もと"],
+      "onYomi": ["ホン"],
+      "radicals": ["木"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "来",
+    "meanings": ["Vir", "devido", "próximo", "causa", "tornar-se"],
+    "examples": [],
+    "sortKey": "くる",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": [
+        "く.る",
+        "きた.る",
+        "きた.す",
+        "き.たす",
+        "き.たる",
+        "き",
+        "こ"
+      ],
+      "onYomi": ["ライ", "タイ"],
+      "radicals": ["木"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "東",
+    "meanings": ["Oriente"],
+    "examples": [],
+    "sortKey": "ひがし",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["ひがし"],
+      "onYomi": ["トウ"],
+      "radicals": ["木"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "校",
+    "meanings": ["exame", "escola", "impressão", "prova", "correção"],
+    "examples": [],
+    "sortKey": "こう",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": [],
+      "onYomi": ["コウ", "キョウ"],
+      "radicals": ["木"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "母",
+    "meanings": ["mãe", "materno"],
+    "examples": [],
+    "sortKey": "はは",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["はは", "も"],
+      "onYomi": ["ボ"],
+      "radicals": ["毋"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "毎",
+    "meanings": ["todo"],
+    "examples": [],
+    "sortKey": "ごと",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["ごと", "-ごと.に"],
+      "onYomi": ["マイ"],
+      "radicals": ["毋"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "気",
+    "meanings": ["espírito", "mente"],
+    "examples": [],
+    "sortKey": "いき",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["いき", "き"],
+      "onYomi": ["キ", "ケ"],
+      "radicals": ["气"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "水",
+    "meanings": ["água"],
+    "examples": [],
+    "sortKey": "みず",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["みず", "みず-"],
+      "onYomi": ["スイ"],
+      "radicals": ["水"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "火",
+    "meanings": ["fogo"],
+    "examples": [],
+    "sortKey": "ひ",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["ひ", "-び", "ほ-"],
+      "onYomi": ["カ"],
+      "radicals": ["火"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "父",
+    "meanings": ["pai"],
+    "examples": [],
+    "sortKey": "ちち",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["ちち"],
+      "onYomi": ["フ"],
+      "radicals": ["父"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "生",
+    "meanings": ["vida", "genuína", "nascimento"],
+    "examples": [],
+    "sortKey": "いきる",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": [
+        "い.きる",
+        "い.かす",
+        "い.ける",
+        "う.まれる",
+        "うま.れる",
+        "う.まれ",
+        "うまれ",
+        "う.む",
+        "お.う",
+        "は.える",
+        "は.やす",
+        "き",
+        "なま",
+        "なま-",
+        "な.る",
+        "な.す",
+        "む.す",
+        "-う"
+      ],
+      "onYomi": ["セイ", "ショウ"],
+      "radicals": ["生"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "男",
+    "meanings": ["masculino"],
+    "examples": [],
+    "sortKey": "おとこ",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["おとこ", "お"],
+      "onYomi": ["ダン", "ナン"],
+      "radicals": ["田"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "白",
+    "meanings": ["branco"],
+    "examples": [],
+    "sortKey": "しろ",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["しろ", "しら-", "しろ.い"],
+      "onYomi": ["ハク", "ビャク"],
+      "radicals": ["白"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "百",
+    "meanings": ["cem"],
+    "examples": [],
+    "sortKey": "もも",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["もも"],
+      "onYomi": ["ヒャク", "ビャク"],
+      "radicals": ["白"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "目",
+    "meanings": [
+      "olho",
+      "classe",
+      "olhar",
+      "visão",
+      "experiência",
+      "atenção",
+      "favor"
+    ],
+    "examples": [],
+    "sortKey": "め",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["め", "-め", "ま-"],
+      "onYomi": ["モク", "ボク"],
+      "radicals": ["目"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "社",
+    "meanings": ["companhia", "firme", "escritório", "associação", "templo"],
+    "examples": [],
+    "sortKey": "やしろ",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["やしろ"],
+      "onYomi": ["シャ"],
+      "radicals": ["示"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "空",
+    "meanings": ["esvaziar", "ceú", "desocupado", "vazio", "vácuo"],
+    "examples": [],
+    "sortKey": "そら",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": [
+        "そら",
+        "あ.く",
+        "あ.き",
+        "あ.ける",
+        "から",
+        "す.く",
+        "す.かす",
+        "むな.しい"
+      ],
+      "onYomi": ["クウ"],
+      "radicals": ["穴"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "立",
+    "meanings": ["Ficar de pé", "levantar-se"],
+    "examples": [],
+    "sortKey": "たつ",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": [
+        "た.つ",
+        "-た.つ",
+        "た.ち-",
+        "た.てる",
+        "-た.てる",
+        "た.て-",
+        "たて-",
+        "-た.て",
+        "-だ.て",
+        "-だ.てる"
+      ],
+      "onYomi": ["リツ", "リュウ", "リットル"],
+      "radicals": ["立"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "耳",
+    "meanings": ["ouvido"],
+    "examples": [],
+    "sortKey": "みみ",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["みみ"],
+      "onYomi": ["ジ"],
+      "radicals": ["耳"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "聞",
+    "meanings": ["escutar", "perguntar", "escuta"],
+    "examples": [],
+    "sortKey": "きく",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["き.く", "き.こえる"],
+      "onYomi": ["ブン", "モン"],
+      "radicals": ["耳"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "花",
+    "meanings": ["flor"],
+    "examples": [],
+    "sortKey": "はな",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["はな"],
+      "onYomi": ["カ", "ケ"],
+      "radicals": ["艸"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "行",
+    "meanings": ["ir", "viagem", "viajar"],
+    "examples": [],
+    "sortKey": "いく",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": [
+        "い.く",
+        "ゆ.く",
+        "-ゆ.き",
+        "-ゆき",
+        "-い.き",
+        "-いき",
+        "おこな.う",
+        "おこ.なう"
+      ],
+      "onYomi": ["コウ", "ギョウ", "アン"],
+      "radicals": ["行"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "西",
+    "meanings": ["oeste", "Espanha"],
+    "examples": [],
+    "sortKey": "にし",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["にし"],
+      "onYomi": ["セイ", "サイ", "ス"],
+      "radicals": ["襾"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "見",
+    "meanings": [
+      "ver",
+      "esperanças",
+      "oportunidades",
+      "idéia",
+      "opinião",
+      "olhar",
+      "visíveis"
+    ],
+    "examples": [],
+    "sortKey": "みる",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["み.る", "み.える", "み.せる"],
+      "onYomi": ["ケン"],
+      "radicals": ["見"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "言",
+    "meanings": ["Dizer", "palavras"],
+    "examples": [],
+    "sortKey": "いう",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["い.う", "こと"],
+      "onYomi": ["ゲン", "ゴン"],
+      "radicals": ["言"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "話",
+    "meanings": ["Conversar", "falar uma língua", "conto"],
+    "examples": [],
+    "sortKey": "はなす",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["はな.す", "はなし"],
+      "onYomi": ["ワ"],
+      "radicals": ["言"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "語",
+    "meanings": ["palavra", "discurso", "língua"],
+    "examples": [],
+    "sortKey": "かたる",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["かた.る", "かた.らう"],
+      "onYomi": ["ゴ"],
+      "radicals": ["言"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "読",
+    "meanings": ["leia"],
+    "examples": [],
+    "sortKey": "よむ",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["よ.む", "-よ.み"],
+      "onYomi": ["ドク", "トク", "トウ"],
+      "radicals": ["言"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "買",
+    "meanings": ["comprar"],
+    "examples": [],
+    "sortKey": "かう",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["か.う"],
+      "onYomi": ["バイ"],
+      "radicals": ["貝"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "足",
+    "meanings": ["perna", "pé", "ser suficiente"],
+    "examples": [],
+    "sortKey": "あし",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["あし", "た.りる", "た.る", "た.す"],
+      "onYomi": ["ソク"],
+      "radicals": ["足"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "車",
+    "meanings": ["carro"],
+    "examples": [],
+    "sortKey": "くるま",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["くるま"],
+      "onYomi": ["シャ"],
+      "radicals": ["車"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "週",
+    "meanings": ["semana"],
+    "examples": [],
+    "sortKey": "しゅう",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": [],
+      "onYomi": ["シュウ"],
+      "radicals": ["辵"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "道",
+    "meanings": [
+      "Caminho",
+      "estrada",
+      "rua",
+      "distrito",
+      "viagem",
+      "curso",
+      "moral",
+      "ensinamentos",
+      "filosofia"
+    ],
+    "examples": [],
+    "sortKey": "みち",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["みち", "いう"],
+      "onYomi": ["ドウ", "トウ"],
+      "radicals": ["辵"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "金",
+    "meanings": ["ouro"],
+    "examples": [],
+    "sortKey": "かね",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["かね", "かな-", "-がね"],
+      "onYomi": ["キン", "コン", "ゴン"],
+      "radicals": ["金"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "長",
+    "meanings": ["Longo", "ambicionar", "líder", "chefe"],
+    "examples": [],
+    "sortKey": "ながい",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["なが.い", "おさ"],
+      "onYomi": ["チョウ"],
+      "radicals": ["長"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "間",
+    "meanings": ["intervalo", "espaço"],
+    "examples": [],
+    "sortKey": "あいだ",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["あいだ", "ま", "あい"],
+      "onYomi": ["カン", "ケン"],
+      "radicals": ["門"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "雨",
+    "meanings": ["chuva"],
+    "examples": [],
+    "sortKey": "あめ",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["あめ", "あま-", "-さめ"],
+      "onYomi": ["ウ"],
+      "radicals": ["雨"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "電",
+    "meanings": ["eletricidade"],
+    "examples": [],
+    "sortKey": "でん",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": [],
+      "onYomi": ["デン"],
+      "radicals": ["雨"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "食",
+    "meanings": ["comer", "comida", "alimento"],
+    "examples": [],
+    "sortKey": "くう",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["く.う", "く.らう", "た.べる", "は.む"],
+      "onYomi": ["ショク", "ジキ"],
+      "radicals": ["食"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "飲",
+    "meanings": ["beber", "fumar", "tomar"],
+    "examples": [],
+    "sortKey": "のむ",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["の.む", "-の.み"],
+      "onYomi": ["イン", "オン"],
+      "radicals": ["食"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "駅",
+    "meanings": ["estação"],
+    "examples": [],
+    "sortKey": "えき",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": [],
+      "onYomi": ["エキ"],
+      "radicals": ["馬"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "高",
+    "meanings": ["Caro", "alto"],
+    "examples": [],
+    "sortKey": "たかい",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["たか.い", "たか", "-だか", "たか.まる", "たか.める"],
+      "onYomi": ["コウ"],
+      "radicals": ["高"]
+    }
+  },
+  {
+    "language": "ja",
+    "writingSystem": "Hani",
+    "symbol": "魚",
+    "meanings": ["peixe"],
+    "examples": [],
+    "sortKey": "うお",
+    "classifications": [
+      {
+        "scheme": "jlpt",
+        "level": "N5"
+      }
+    ],
+    "details": {
+      "kind": "kanji",
+      "kunYomi": ["うお", "さかな", "-ざかな"],
+      "onYomi": ["ギョ"],
+      "radicals": ["魚"]
+    }
+  }
+]

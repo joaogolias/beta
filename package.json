@@ -1,0 +1,41 @@
+{
+  "name": "babel-crux",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "mobile",
+    "backend"
+  ],
+  "engines": {
+    "node": ">=24.13.0 <25"
+  },
+  "scripts": {
+    "assets:brand": "node scripts/brand-assets.mjs",
+    "start": "npm run start --workspace mobile",
+    "android": "npm run android --workspace mobile",
+    "backend:dev": "npm run dev --workspace backend",
+    "backend:codegen": "npm run codegen --workspace backend",
+    "android:apk": "node scripts/android-build.mjs",
+    "android:install": "node scripts/android-install.mjs",
+    "android:smoke": "node scripts/android-smoke.mjs",
+    "typecheck": "npm run typecheck --workspaces",
+    "lint": "eslint mobile backend scripts shared",
+    "test": "npm run test --workspaces && node --test scripts/*.test.mjs",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "overrides": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "eslint": "^9.39.0",
+    "eslint-config-expo": "57.0.2",
+    "prettier": "^3.6.2"
+  },
+  "dependencies": {
+    "unicode-segmenter": "0.17.3"
+  }
+}

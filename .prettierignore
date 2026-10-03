@@ -1,0 +1,11 @@
+node_modules
+package-lock.json
+**/_generated
+mobile/android
+mobile/ios
+mobile/modules/**/android/build
+mobile/modules/**/android/.gradle
+mobile/assets
+dist
+artifacts
+.tools

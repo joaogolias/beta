@@ -1,0 +1,248 @@
+{
+  "seedId": "babel-crux:dev:jlpt-n5-authorial-v1",
+  "paper": {
+    "title": "N5 · Treino autoral 01 — 20 questões",
+    "level": "N5",
+    "description": "Treino curto com 5 questões de kanji/vocabulário, 5 de gramática, 5 de leitura e 5 de escuta. Conteúdo autoral inspirado nos tipos de questão do JLPT N5; não é uma prova oficial nem uma reprodução de edições anteriores. Os áudios usam voz japonesa sintetizada. O resultado indica acertos, sem equivalência à pontuação oficial do JLPT.",
+    "source": "babel-crux:dev:jlpt-n5-authorial-v1 · Questões e roteiros autorais do Babel Crux, setembro de 2026. Referência de formatos: https://www.jlpt.jp/e/samples/sample09.html . Áudio sintetizado com Open JTalk, voz nitech-jp-atr503-m001, CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/); créditos: Nagoya Institute of Technology, Department of Computer Science (2003–2012), e Tokyo Institute of Technology, Interdisciplinary Graduate School of Science and Engineering (2003–2008). Sem vínculo ou endosso dessas instituições ou do JLPT.",
+    "questions": [
+      {
+        "id": "n5-authorial-v1-vocabulary-1",
+        "skill": "vocabulary",
+        "kind": "kanji_reading",
+        "prompt": "「学校」は どう よみますか。\nまいにち、学校へ いきます。",
+        "choices": ["がこう", "がっこう", "がっこ", "かっこう"],
+        "correctChoice": 1,
+        "explanation": "学校 (escola) se lê がっこう. O っ indica a pausa antes de こ, e こう tem vogal longa. A frase significa: ‘Vou à escola todos os dias’."
+      },
+      {
+        "id": "n5-authorial-v1-vocabulary-2",
+        "skill": "vocabulary",
+        "kind": "orthography",
+        "prompt": "「みず」は どの かんじですか。\nつめたい みずを のみます。",
+        "choices": ["木", "火", "水", "金"],
+        "correctChoice": 2,
+        "explanation": "みず (água) se escreve 水. 木 é árvore, 火 é fogo e 金 pode significar ouro ou dinheiro. A frase diz: ‘Bebo água gelada’."
+      },
+      {
+        "id": "n5-authorial-v1-vocabulary-3",
+        "skill": "vocabulary",
+        "kind": "context",
+        "prompt": "（　）に なにを いれますか。\nあめが ふっています。（　）を もって いきます。",
+        "choices": ["かさ", "くつした", "おさら", "じしょ"],
+        "correctChoice": 0,
+        "explanation": "かさ é guarda-chuva: ‘Está chovendo. Vou levar um guarda-chuva’. As outras opções são meias (くつした), prato (おさら) e dicionário (じしょ)."
+      },
+      {
+        "id": "n5-authorial-v1-vocabulary-4",
+        "skill": "vocabulary",
+        "kind": "paraphrase",
+        "prompt": "つぎの ぶんと だいたい おなじ いみの ぶんは どれですか。\nちちは くるまを もって いません。",
+        "choices": [
+          "ちちは くるまが すきでは ありません。",
+          "ちちは くるまを かいます。",
+          "ちちには くるまが ありません。",
+          "ちちは くるまに のって います。"
+        ],
+        "correctChoice": 2,
+        "explanation": "くるまを もって いません significa ‘não tem carro’. ちちには くるまが ありません expressa a mesma ideia. Não gostar, comprar e estar andando de carro são informações diferentes."
+      },
+      {
+        "id": "n5-authorial-v1-vocabulary-5",
+        "skill": "vocabulary",
+        "kind": "kanji_reading",
+        "prompt": "「日曜日」は どう よみますか。\n日曜日に ともだちと あいます。",
+        "choices": ["げつようび", "きんようび", "どようび", "にちようび"],
+        "correctChoice": 3,
+        "explanation": "日曜日 se lê にちようび e significa domingo. げつようび é segunda-feira, きんようび é sexta-feira e どようび é sábado."
+      },
+      {
+        "id": "n5-authorial-v1-grammar-1",
+        "skill": "grammar",
+        "kind": "grammar_form",
+        "prompt": "（　）に なにを いれますか。\nバスで えき（　）いきます。",
+        "choices": ["で", "へ", "を", "が"],
+        "correctChoice": 1,
+        "explanation": "へ marca a direção ou o destino de いきます: えきへ いきます (ir à estação). バスで indica o meio de transporte: de ônibus. A partícula へ é pronunciada ‘e’."
+      },
+      {
+        "id": "n5-authorial-v1-grammar-2",
+        "skill": "grammar",
+        "kind": "grammar_form",
+        "prompt": "（　）に なにを いれますか。\nまいあさ、7じ（　）おきます。",
+        "choices": ["を", "が", "に", "と"],
+        "correctChoice": 2,
+        "explanation": "に marca um horário específico: 7じに おきます (acordo às sete). まいあさ significa ‘todas as manhãs’ e não precisa de に neste uso."
+      },
+      {
+        "id": "n5-authorial-v1-grammar-3",
+        "skill": "grammar",
+        "kind": "grammar_form",
+        "prompt": "（　）に なにを いれますか。\nきのうは とても（　）。きょうは あたたかいです。",
+        "choices": [
+          "さむかったです",
+          "さむいです",
+          "さむいでした",
+          "さむくです"
+        ],
+        "correctChoice": 0,
+        "explanation": "きのう (ontem) pede o passado. O passado afirmativo do adjetivo em い さむい é さむかった, seguido de です na forma polida. ‘Ontem fez muito frio. Hoje está agradável’."
+      },
+      {
+        "id": "n5-authorial-v1-grammar-4",
+        "skill": "grammar",
+        "kind": "sentence_composition",
+        "prompt": "4つの ことばを ならべます。★に はいる ことばは どれですか。\nこの ほんは、あの ＿＿ ＿＿ ★ ＿＿ です。",
+        "choices": ["より", "すこし", "ほん", "たかい"],
+        "correctChoice": 1,
+        "explanation": "A ordem é この ほんは、あの ほん より すこし たかい です (‘Este livro é um pouco mais caro que aquele’). ★ ocupa o terceiro espaço, preenchido por すこし (um pouco). より marca o termo de comparação: あの ほん."
+      },
+      {
+        "id": "n5-authorial-v1-grammar-5",
+        "skill": "grammar",
+        "kind": "text_grammar",
+        "prompt": "ぶんしょうを よんで、（　）に はいる ことばを えらんでください。",
+        "passage": "きょうは にちようびです。がっこうは やすみです。（　）、あした テストが ありますから、うちで べんきょうします。",
+        "choices": ["それから", "そして", "だから", "でも"],
+        "correctChoice": 3,
+        "explanation": "でも (mas) contrasta o dia sem aulas com a decisão de estudar para a prova de amanhã. だから expressaria uma consequência, enquanto それから e そして acrescentariam uma sequência ou informação."
+      },
+      {
+        "id": "n5-authorial-v1-reading-1",
+        "skill": "reading",
+        "kind": "short_passage",
+        "prompt": "あきらさんは、パンを どこに おきますか。",
+        "passage": "あきらさんへ\nパンを かって きました。だいどころの つくえの うえに あります。あさ、3つ かいました。わたしは 1つ たべました。のこりの 2つは あきらさんのです。いま たべない ときは、れいぞうこに いれてください。\nはは\n\nあきらさんは いま おなかが いっぱいです。あとで たべます。",
+        "choices": [
+          "だいどころの つくえの した",
+          "れいぞうこの なか",
+          "かばんの なか",
+          "へやの つくえの うえ"
+        ],
+        "correctChoice": 1,
+        "explanation": "O bilhete pede para colocar o pão na geladeira (れいぞうこ) se não for comer agora. Akira está satisfeito e vai comer depois, então deve guardar os dois pães na geladeira. A mesa da cozinha é onde a mãe os deixou inicialmente."
+      },
+      {
+        "id": "n5-authorial-v1-reading-2",
+        "skill": "reading",
+        "kind": "short_passage",
+        "prompt": "ゆきさんは、あした なにを もって いきますか。",
+        "passage": "ゆきさんへ\nあした、こうえんで ひるごはんを たべましょう。わたしは パンと おちゃを もって いきます。ゆきさんは くだものを おねがいします。コップは うちに たくさん ありますから、わたしが もって いきます。12じに こうえんの いりぐちで あいましょう。\nマリア",
+        "choices": ["パンと おちゃ", "コップ", "くだもの", "パンと コップ"],
+        "correctChoice": 2,
+        "explanation": "Maria pede ゆきさんは くだものを おねがいします: Yuki deve levar frutas. Maria ficará responsável pelo pão, chá e copos. O encontro é ao meio-dia na entrada do parque."
+      },
+      {
+        "id": "n5-authorial-v1-reading-3",
+        "skill": "reading",
+        "kind": "medium_passage",
+        "prompt": "たろうさんは、にちようびの ごぜんに なにを しましたか。",
+        "passage": "たろうさんは、にちようびの あさ、9じに おきました。あさごはんを たべてから、としょかんへ いきました。でも、としょかんの ドアに「きょうは やすみです」と かいて ありました。\nたろうさんは ほんを かりたかったです。でも、そのひは としょかんが やすみですから、ほんは かりませんでした。そこで、としょかんの となりの こうえんへ いきました。こうえんで ともだちの けんさんに あいました。ふたりは 1じかん ぐらい はなしました。\n12じに、たろうさんは うちへ かえって、ひるごはんを たべました。ごごは へやを そうじして、テレビを みました。ほんは げつようびに かりました。",
+        "choices": [
+          "としょかんで ほんを かりました。",
+          "うちで テレビを みました。",
+          "へやを そうじしました。",
+          "こうえんで ともだちと はなしました。"
+        ],
+        "correctChoice": 3,
+        "explanation": "Na manhã de domingo, Tarō encontrou Ken no parque e conversou por cerca de uma hora. A biblioteca estava fechada; ele só pegou o livro na segunda-feira. A limpeza e a televisão aconteceram à tarde."
+      },
+      {
+        "id": "n5-authorial-v1-reading-4",
+        "skill": "reading",
+        "kind": "information_retrieval",
+        "prompt": "きょうは どようびです。ごご6じに ほんを かりに いきたいです。どの としょかんへ いきますか。",
+        "passage": "【まちの としょかん】\nほんを かりる ときは、カードを もって きてください。\n\nさくらとしょかん\nげつようび〜きんようび：9じ〜19じ\nどようび・にちようび：9じ〜17じ\n\nみなみとしょかん\nげつようび〜どようび：10じ〜20じ\nにちようび：やすみ\n\nきたとしょかん\nげつようび〜きんようび：9じ〜18じ\nどようび・にちようび：やすみ\n\nひかりとしょかん\nまいにち：10じ〜16じ",
+        "choices": [
+          "さくらとしょかん",
+          "きたとしょかん",
+          "みなみとしょかん",
+          "ひかりとしょかん"
+        ],
+        "correctChoice": 2,
+        "explanation": "Sábado (どようび) às 18h (ごご6じ), apenas a biblioteca みなみ está aberta: funciona das 10h às 20h de segunda a sábado. さくら fecha às 17h no sábado; きた não abre; ひかり fecha às 16h."
+      },
+      {
+        "id": "n5-authorial-v1-reading-5",
+        "skill": "reading",
+        "kind": "information_retrieval",
+        "prompt": "500えん あります。サンドイッチと のみものを 1つずつ かいたいです。なにを かいますか。",
+        "passage": "【あおいカフェ・メニュー】\n\nたべもの\nたまごサンド：300えん\nチーズサンド：350えん\nケーキ：250えん\n\nのみもの\nおちゃ：180えん\nコーヒー：220えん\nジュース：250えん\n\nおみせは ごぜん9じから ごご5じまでです。\nおちゃと コーヒーは、あたたかいものと つめたいものが あります。\nメニューに かいて ある ねだんだけ はらいます。",
+        "choices": [
+          "たまごサンドと おちゃ",
+          "たまごサンドと コーヒー",
+          "チーズサンドと おちゃ",
+          "チーズサンドと ジュース"
+        ],
+        "correctChoice": 0,
+        "explanation": "O sanduíche de ovo (300 ienes) e o chá (180 ienes) custam 480 ienes, dentro dos 500 disponíveis. As outras combinações custam 520, 530 e 600 ienes. O cardápio informa que não há acréscimo aos preços listados."
+      },
+      {
+        "id": "n5-authorial-v1-listening-1",
+        "skill": "listening",
+        "kind": "task_comprehension",
+        "prompt": "おとこの ひとは、まず なにを しますか。おんせいを きいて、えらんでください。",
+        "choices": [
+          "パンを かいます。",
+          "うちに かえります。",
+          "ぎゅうにゅうを のみます。",
+          "みせに いきます。"
+        ],
+        "correctChoice": 1,
+        "explanation": "Ele precisa voltar para casa primeiro, porque a carteira ficou lá. Só depois pegará a carteira e irá à loja comprar pão e leite. A palavra まず pede a primeira ação, não o objetivo final."
+      },
+      {
+        "id": "n5-authorial-v1-listening-2",
+        "skill": "listening",
+        "kind": "key_points",
+        "prompt": "あしたは なんじに えきに いきますか。おんせいを きいて、えらんでください。",
+        "choices": ["8じ", "9じ", "9じはん", "8じはん"],
+        "correctChoice": 3,
+        "explanation": "A mulher primeiro diz nove horas, mas se corrige: 九時ではありません。八時半に来てください (‘Não é às nove. Venha às oito e meia’). Nove horas é o horário de saída do trem."
+      },
+      {
+        "id": "n5-authorial-v1-listening-3",
+        "skill": "listening",
+        "kind": "quick_response",
+        "prompt": "おんせいを きいて、いちばん いい へんじを えらんでください。",
+        "choices": [
+          "ええ、いいですね。",
+          "きのう べんきょうしました。",
+          "としょかんは おおきいです。"
+        ],
+        "correctChoice": 0,
+        "explanation": "O professor convida a estudar juntos na biblioteca amanhã: 勉強しませんか. ええ、いいですね (‘Sim, boa ideia’) responde ao convite. Dizer que estudou ontem ou que a biblioteca é grande não responde ao convite."
+      },
+      {
+        "id": "n5-authorial-v1-listening-4",
+        "skill": "listening",
+        "kind": "task_comprehension",
+        "prompt": "こどもは なにを もって きますか。おんせいを きいて、えらんでください。",
+        "choices": [
+          "おおきい おさらを 2まい",
+          "コップを 2つ",
+          "ちいさい おさらを 1まい",
+          "ちいさい おさらを 2まい"
+        ],
+        "correctChoice": 3,
+        "explanation": "A mãe pede dois pratos pequenos. Ela especifica 大きいお皿ではありません。小さいお皿です (‘Não são os pratos grandes; são os pequenos’). Os copos já estão ali e não precisam ser trazidos."
+      },
+      {
+        "id": "n5-authorial-v1-listening-5",
+        "skill": "listening",
+        "kind": "key_points",
+        "prompt": "おとこの ひとは、きょうは なにで かいしゃへ いきますか。おんせいを きいて、えらんでください。",
+        "choices": ["じてんしゃ", "でんしゃ", "バス", "あるいて"],
+        "correctChoice": 2,
+        "explanation": "Hoje ele vai de ônibus (バス), porque está chovendo. Normalmente usa bicicleta, mas a pergunta é sobre hoje. Ele diz expressamente que não vai de trem, pois a estação é longe de casa."
+      }
+    ]
+  },
+  "listeningScripts": {
+    "n5-authorial-v1-listening-1": "男の人が話しています。男の人は、まず何をしますか。今日は、パンと牛乳を買います。でも、財布は家にあります。いまから家に帰って、財布を持って、店に行きます。男の人は、まず何をしますか。",
+    "n5-authorial-v1-listening-2": "女の人が話しています。明日は何時に駅に行きますか。明日は、九時に駅に来てください。あ、すみません。九時ではありません。八時半に来てください。電車は九時に出ます。明日は何時に駅に行きますか。",
+    "n5-authorial-v1-listening-3": "先生が話します。いちばんいい返事を、一、二、三から一つ選んでください。あした、いっしょに図書館で勉強しませんか。一、ええ、いいですね。二、きのう勉強しました。三、図書館は大きいです。",
+    "n5-authorial-v1-listening-4": "お母さんが子どもに話しています。子どもは何を持ってきますか。台所から、お皿を二枚持ってきてください。大きいお皿ではありません。小さいお皿です。コップは、もうここにあります。子どもは何を持ってきますか。",
+    "n5-authorial-v1-listening-5": "男の人が話しています。男の人は、今日は何で会社へ行きますか。いつもは自転車で会社へ行きます。今日は雨ですから、バスで行きます。駅はうちから遠いですから、電車では行きません。男の人は、今日は何で会社へ行きますか。"
+  }
+}

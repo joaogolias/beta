@@ -1,0 +1,34 @@
+{
+  "name": "@babel-crux/backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "postinstall": "node scripts/prepare-typescript.mjs",
+    "predev": "node scripts/prepare-typescript.mjs",
+    "dev": "convex dev --typecheck enable",
+    "predeploy": "node scripts/prepare-typescript.mjs",
+    "deploy": "convex deploy --typecheck enable",
+    "precodegen": "node scripts/prepare-typescript.mjs",
+    "codegen": "convex codegen --typecheck enable",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@clerk/backend": "3.17.1",
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "convex": "1.45.0",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@edge-runtime/vm": "5.0.0",
+    "@types/node": "^24.0.0",
+    "convex-test": "0.0.56",
+    "typescript": "~6.0.3",
+    "vitest": "5.0.0"
+  },
+  "engines": {
+    "node": ">=24.13.0 <25"
+  }
+}

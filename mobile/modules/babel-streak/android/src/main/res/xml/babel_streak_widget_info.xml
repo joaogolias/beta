@@ -1,0 +1,13 @@
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+  android:description="@string/babel_streak_widget_description"
+  android:initialLayout="@layout/babel_streak_widget_tall"
+  android:previewLayout="@layout/babel_streak_widget_tall"
+  android:minWidth="150dp"
+  android:minHeight="180dp"
+  android:minResizeWidth="150dp"
+  android:minResizeHeight="112dp"
+  android:targetCellWidth="2"
+  android:targetCellHeight="2"
+  android:resizeMode="horizontal|vertical"
+  android:updatePeriodMillis="1800000"
+  android:widgetCategory="home_screen" />
