@@ -130,6 +130,42 @@ describe('Development JLPT seed', () => {
     });
   });
 
+  test('replays a seed from an earlier brand without duplicating or rewriting stored attribution', async () => {
+    const { backend, files } = await setup();
+    const args = { ...target, paper: paperInput(), files };
+    const first = await backend.mutation(seed, args);
+    const earlierSource = args.paper
+      .source!.replace(/^beta:/, 'legacy-project:')
+      .replace(
+        'do beta, setembro de 2026.',
+        'do Legacy Project, setembro de 2026.',
+      );
+    await backend.run((ctx) =>
+      ctx.db.patch('jlptPapers', first.id, { source: earlierSource }),
+    );
+
+    const replay = await backend.mutation(seed, args);
+    expect(replay).toMatchObject({
+      created: false,
+      id: first.id,
+      contentVersion: 1,
+    });
+    const stored = await backend.run((ctx) =>
+      ctx.db.query('jlptPapers').collect(),
+    );
+    expect(stored).toHaveLength(1);
+    expect(stored[0].source).toBe(earlierSource);
+
+    await backend.run((ctx) =>
+      ctx.db.patch('jlptPapers', first.id, {
+        source: `${earlierSource} Créditos revisados pelo usuário.`,
+      }),
+    );
+    await expect(backend.mutation(seed, args)).rejects.toThrow(
+      /Preserve as edições/,
+    );
+  });
+
   test('rejects a missing owner, mismatched email, and any other deployment without creating users or papers', async () => {
     const { backend } = await setup();
     await expect(

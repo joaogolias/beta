@@ -40,6 +40,10 @@ import { getCachedProfile } from './src/offline/storage';
 import { useOfflineStatus } from './src/offline/hooks';
 import { palette } from './src/theme';
 import { StreakProvider } from './src/streak/Provider';
+import {
+  AppEnvironment,
+  EnvironmentFrame,
+} from './src/environment/AppEnvironment';
 
 function readConfiguration():
   { config: RuntimeConfig; error?: never } | { config?: never; error: string } {
@@ -65,21 +69,25 @@ const configuration = readConfiguration();
 export default function App() {
   return (
     <SafeAreaProvider>
-      <StatusBar style="dark" />
-      {configuration.config ? (
-        <ClerkProvider
-          publishableKey={configuration.config.clerkPublishableKey}
-          tokenCache={tokenCache}
-          __experimental_resourceCache={resourceCache}
-        >
-          <SessionRoot config={configuration.config} />
-        </ClerkProvider>
-      ) : (
-        <Message
-          title="Falta conectar o aplicativo"
-          detail={configuration.error}
-        />
-      )}
+      <AppEnvironment environment={Constants.expoConfig?.extra?.appEnv}>
+        <EnvironmentFrame>
+          <StatusBar style="dark" />
+          {configuration.config ? (
+            <ClerkProvider
+              publishableKey={configuration.config.clerkPublishableKey}
+              tokenCache={tokenCache}
+              __experimental_resourceCache={resourceCache}
+            >
+              <SessionRoot config={configuration.config} />
+            </ClerkProvider>
+          ) : (
+            <Message
+              title="Falta conectar o aplicativo"
+              detail={configuration.error}
+            />
+          )}
+        </EnvironmentFrame>
+      </AppEnvironment>
     </SafeAreaProvider>
   );
 }
@@ -197,7 +205,7 @@ function ProfileGate({
             isAuthenticated && provisioning === 'ready' && Boolean(user)
           }
         >
-          <StudyHome name={name} environment={environment} />
+          <StudyHome name={name} />
         </StreakProvider>
       </OfflineProvider>
     );
@@ -251,18 +259,11 @@ function ProfileGate({
   return <Message title="Abrindo seus estudos" busy />;
 }
 
-function StudyHome({
-  name,
-  environment,
-}: {
-  name: string;
-  environment: string;
-}) {
+function StudyHome({ name }: { name: string }) {
   const { pending } = useOfflineStatus();
   return (
     <StudyShell
       name={name}
-      environment={environment}
       accountControl={<SignOutControl pendingChanges={pending} />}
     />
   );
@@ -307,7 +308,7 @@ function SignOutControl({ pendingChanges = 0 }: { pendingChanges?: number }) {
         }}
       >
         {pending ? (
-          <ActivityIndicator color={palette.blue} />
+          <ActivityIndicator color={palette.primary} />
         ) : confirmLeave ? (
           <Text style={styles.link}>Sair mesmo assim</Text>
         ) : (
@@ -364,7 +365,7 @@ function Message({
         {busy && (
           <ActivityIndicator
             size="large"
-            color={palette.blue}
+            color={palette.primary}
             accessibilityLabel="Carregando"
           />
         )}
@@ -410,7 +411,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: palette.background },
   center: { flexGrow: 1, justifyContent: 'center', padding: 32, gap: 24 },
   eyebrow: {
-    color: palette.blue,
+    color: palette.primary,
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 3,
@@ -437,7 +438,7 @@ const styles = StyleSheet.create({
     top: 2,
     width: 12,
     height: 20,
-    borderColor: palette.blue,
+    borderColor: palette.primary,
     borderWidth: 2,
     borderRightWidth: 0,
     borderRadius: 2,
@@ -448,7 +449,7 @@ const styles = StyleSheet.create({
     top: 11,
     width: 14,
     borderTopWidth: 2,
-    borderColor: palette.blue,
+    borderColor: palette.primary,
   },
   logoutArrowhead: {
     position: 'absolute',
@@ -458,15 +459,15 @@ const styles = StyleSheet.create({
     height: 10,
     borderTopWidth: 2,
     borderRightWidth: 2,
-    borderColor: palette.blue,
+    borderColor: palette.primary,
     transform: [{ rotate: '45deg' }],
   },
-  link: { color: palette.blue, fontWeight: '700', fontSize: 16 },
+  link: { color: palette.primary, fontWeight: '700', fontSize: 16 },
   error: { color: palette.error, maxWidth: 180 },
   signOutWarning: { maxWidth: 240, gap: 6, padding: 10 },
   signOutCopy: { color: palette.muted, fontSize: 12, lineHeight: 18 },
   button: {
-    backgroundColor: palette.blue,
+    backgroundColor: palette.primary,
     padding: 18,
     borderRadius: 14,
     alignItems: 'center',

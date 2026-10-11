@@ -14,6 +14,11 @@ import { api } from '../../../backend/convex/_generated/api';
 import type { Doc, Id } from '../../../backend/convex/_generated/dataModel';
 import { localQuery, resolveId, type Card } from './model';
 import { useOfflineContext } from './Provider';
+import {
+  remainingQuestCardIds,
+  remainingQuestPaperIds,
+  remainingQuestStoryIds,
+} from '../../../shared/quests';
 
 export function useOfflineStatus() {
   const { engine, ...context } = useOfflineContext();
@@ -148,6 +153,19 @@ export function usePaginatedQuery<Query extends Paginated>(
       : 'skip',
     options,
   );
+  const remoteQuestHistory =
+    name === 'quests:list' &&
+    args !== 'skip' &&
+    online &&
+    !offlineMode &&
+    state.status.pending === 0;
+  const questHistory = useRemotePages(
+    api.quests.list,
+    remoteQuestHistory
+      ? (args as Omit<FunctionArgs<typeof api.quests.list>, 'paginationOpts'>)
+      : 'skip',
+    options,
+  );
   const [page, setPage] = useState({ key, limit: options.initialNumItems });
   const limit = page.key === key ? page.limit : options.initialNumItems;
   type Item = FunctionReturnType<Query>['page'][number];
@@ -194,6 +212,12 @@ export function usePaginatedQuery<Query extends Paginated>(
       status: jlptHistory.status,
       loadMore: jlptHistory.loadMore,
     };
+  if (remoteQuestHistory)
+    return {
+      results: questHistory.results as Item[],
+      status: questHistory.status,
+      loadMore: questHistory.loadMore,
+    };
   return {
     results: results.slice(0, limit),
     status: status as
@@ -208,7 +232,7 @@ export function useMutation<Mutation extends FunctionReference<'mutation'>>(
   const {
     engine,
     retry,
-    refresh,
+    flushPending,
     online,
     offlineMode,
     switchingMode,
@@ -228,7 +252,7 @@ export function useMutation<Mutation extends FunctionReference<'mutation'>>(
         assertCanEditLibrary();
         // Older versions journaled library edits. Send those first so a new
         // direct mutation cannot race or overwrite a still-pending edit.
-        if (engine.getSnapshot().status.pending) await refresh();
+        if (engine.getSnapshot().status.pending) await flushPending();
         const state = engine.getSnapshot();
         if (state.status.pending || state.status.conflict)
           throw new Error(
@@ -245,18 +269,74 @@ export function useMutation<Mutation extends FunctionReference<'mutation'>>(
         assertCanEditLibrary();
         const value = await client.mutation(reference, remoteArgs);
         // All library mutations return their complete document. Preserve that
-        // confirmed result even if a later full-library download is unavailable.
+        // confirmed result immediately; refreshing all catalogues is reserved
+        // for app lifecycle or an explicit refresh gesture/action.
         await engine.acceptRemoteContent(value as Card | Doc<'jlptPapers'>);
-        await refresh().catch(() => undefined);
         return value;
       }
       if (!online && !offlineMode)
         throw new Error(
           'Sem internet. Ative o modo offline nas configurações para continuar estudando.',
         );
-      const value = await engine.mutate(name, args as Record<string, unknown>);
-      if (!offlineMode) retry();
-      return value as FunctionReturnType<Mutation>;
+      const retained: (() => void)[] = [];
+      try {
+        let completedReading:
+          { kind: 'story'; storyId: string; questId: string } | undefined;
+        if (name === 'quests:start' && online && !offlineMode) {
+          const fetched = new Set<string>();
+          while (true) {
+            const state = engine.getSnapshot();
+            const quest = state.data?.quests?.find((q) => q.id === args.id);
+            if (
+              !quest ||
+              remainingQuestCardIds(quest).length ||
+              remainingQuestPaperIds(quest).length
+            )
+              break;
+            const storyId = remainingQuestStoryIds(quest)[0];
+            const pending = state.saved?.queue.some(
+              ({ command }) =>
+                'storyId' in command &&
+                command.storyId === storyId &&
+                command.questId === quest.id,
+            );
+            if (!storyId || pending || fetched.has(storyId)) break;
+            fetched.add(storyId);
+            retained.push(engine.retainStory(storyId, quest.id));
+            // Download just the chosen reading, which can be outside the recent
+            // catalogue. Keep it cached until the start has entered the journal.
+            const reading = await client.query(api.stories.get, {
+              id: storyId as Id<'stories'>,
+              questId: quest.id as Id<'quests'>,
+            });
+            if (!reading)
+              throw new Error(
+                'A história escolhida para esta quest não está disponível.',
+              );
+            await engine.acceptRemoteStory(
+              reading.story,
+              reading.progress,
+              reading.quest,
+            );
+            if (
+              reading.quest?.completedAt !== undefined &&
+              reading.progress?.completedAt !== undefined
+            ) {
+              completedReading = { kind: 'story', storyId, questId: quest.id };
+              break;
+            }
+            // Another device may have finished this target. Re-evaluate the
+            // authoritative selection instead of reopening its completed result.
+          }
+        }
+        const value =
+          completedReading ??
+          (await engine.mutate(name, args as Record<string, unknown>));
+        if (!offlineMode) retry();
+        return value as FunctionReturnType<Mutation>;
+      } finally {
+        for (const release of retained) release();
+      }
     },
     [
       client,
@@ -265,7 +345,7 @@ export function useMutation<Mutation extends FunctionReference<'mutation'>>(
       offlineMode,
       online,
       reference,
-      refresh,
+      flushPending,
       retry,
       switchingMode,
       assertCanEditLibrary,

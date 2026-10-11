@@ -37,6 +37,30 @@ const presentationFields = {
 
 export const offlineCommandValidator = v.union(
   v.object({
+    type: v.literal('story.progress'),
+    questId: v.optional(v.string()),
+    contentVersion: v.optional(v.number()),
+    storyId: v.string(),
+    paragraphIndex: v.number(),
+    occurredAt: v.number(),
+  }),
+  v.object({
+    type: v.literal('story.answer'),
+    questId: v.optional(v.string()),
+    contentVersion: v.optional(v.number()),
+    storyId: v.string(),
+    questionId: v.string(),
+    optionId: v.string(),
+    occurredAt: v.number(),
+  }),
+  v.object({
+    type: v.literal('story.complete'),
+    questId: v.optional(v.string()),
+    contentVersion: v.optional(v.number()),
+    storyId: v.string(),
+    occurredAt: v.number(),
+  }),
+  v.object({
     type: v.literal('jlpt.create'),
     localId: v.string(),
     paper: jlptPaperValidator,
@@ -59,6 +83,7 @@ export const offlineCommandValidator = v.union(
   }),
   v.object({
     type: v.literal('jlpt.start'),
+    questId: v.optional(v.string()),
     localId: v.string(),
     paperId: v.string(),
     snapshot: jlptSnapshotValidator,
@@ -147,6 +172,7 @@ export const offlineCommandValidator = v.union(
   }),
   v.object({
     type: v.literal('study.start'),
+    questId: v.optional(v.string()),
     localId: v.string(),
     mode: v.union(v.literal('direct'), v.literal('adaptive')),
     order: v.union(v.literal('sorted'), v.literal('random')),

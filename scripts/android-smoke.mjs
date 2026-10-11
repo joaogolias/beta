@@ -1,7 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import { setTimeout } from 'node:timers/promises';
 
-const [packageName = 'com.babelcrux.app.dev', serial, ...extra] =
+const [packageName = 'com.beta.app.dev', serial, ...extra] =
   process.argv.slice(2);
 const adb = process.env.ADB || 'adb';
 const port = process.env.ADB_SERVER_PORT;

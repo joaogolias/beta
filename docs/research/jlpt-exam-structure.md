@@ -109,7 +109,7 @@ seleção oficial e simulado autoral. Não cadastrar as fixtures fictícias como
 provas reais.
 [Fonte: cadernos oficiais e condições de uso](https://www.jlpt.jp/e/samples/sampleindex.html?mode=pc).
 
-Recomendações de implementação (inferências para o Babel Crux):
+Recomendações de implementação (inferências para o beta):
 
 1. Prova identificada por nível, título/edição, origem e blocos ordenados; questões
    pertencem a uma das quatro áreas e a um tipo de questão.

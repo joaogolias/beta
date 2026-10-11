@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 20,
     borderRadius: 24,
-    backgroundColor: palette.mountainSoft,
+    backgroundColor: palette.stoneSoft,
     borderWidth: 1,
     borderColor: palette.line,
   },
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     borderColor: palette.line,
   },
   label: {
-    color: palette.mountainDeep,
+    color: palette.stoneDeep,
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1.5,

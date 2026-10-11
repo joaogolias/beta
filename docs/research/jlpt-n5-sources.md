@@ -28,7 +28,7 @@ O arquivo veio do [download oficial KANJIDIC2](http://ftp.edrdg.org/pub/Nihongo/
 
 Foram copiados `literal`, leituras `ja_kun`/`ja_on` e significados `meaning[m_lang=pt]`. Pontos de okurigana e hífens permanecem nas leituras. O radical usa `rad_value[rad_type=classical]`, convertido para ideograma CJK unificado pela terceira coluna de [CJKRadicals 17.0.0](https://www.unicode.org/Public/17.0.0/ucd/CJKRadicals.txt). Esse campo registra o radical de classificação, não todos os componentes visuais. Fontes: [DTD KANJIDIC2](https://www.edrdg.org/kanjidic/kanjidic2_dtdh.html) e o próprio arquivo Unicode.
 
-Todos recebem idioma `ja`, escrita `Hani` e nível `N5`. A ordenação usa a primeira kun, ou a primeira on convertida para hiragana, sem pontos/hífens; o símbolo seria o último recurso. Exemplos ficam vazios. Frente e verso são omitidos para o Babel Crux produzir as faces canônicas. Nenhuma leitura, tradução ou radical foi inventado.
+Todos recebem idioma `ja`, escrita `Hani` e nível `N5`. A ordenação usa a primeira kun, ou a primeira on convertida para hiragana, sem pontos/hífens; o símbolo seria o último recurso. Exemplos ficam vazios. Frente e verso são omitidos para o beta produzir as faces canônicas. Nenhuma leitura, tradução ou radical foi inventado.
 
 Validação local: 103 símbolos únicos; todos com significados em português, on'yomi e radical. `校`, `週`, `電` e `駅` têm kun'yomi vazia na fonte e mantêm `[]`. Os maiores arrays têm 11 significados e 18 leituras kun, dentro dos limites do modelo.
 

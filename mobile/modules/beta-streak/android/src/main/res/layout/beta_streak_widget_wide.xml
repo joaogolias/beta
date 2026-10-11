@@ -1,0 +1,79 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:id="@+id/beta_streak_root"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:background="@drawable/beta_streak_background"
+  android:orientation="horizontal"
+  android:padding="10dp"
+  android:gravity="center_vertical"
+  android:importantForAccessibility="yes"
+  android:contentDescription="@string/beta_streak_widget_description">
+  <ImageView
+    android:id="@+id/beta_streak_mascot"
+    android:layout_width="0dp"
+    android:layout_weight="1"
+    android:layout_height="match_parent"
+    android:contentDescription="@null"
+    android:importantForAccessibility="no"
+    android:scaleType="fitCenter"
+    android:src="@drawable/beta_streak_ibex" />
+  <LinearLayout
+    android:layout_width="120dp"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="8dp"
+    android:orientation="vertical">
+    <TextView
+      android:layout_width="match_parent"
+      android:layout_height="12dp"
+      android:text="@string/beta_streak_widget_heading"
+      android:textColor="@color/beta_streak_foreground_muted"
+      android:textSize="9sp"
+      android:textStyle="bold"
+      android:letterSpacing="0.04"
+      android:maxLines="1"
+      android:ellipsize="end"
+      android:includeFontPadding="false"
+      android:importantForAccessibility="no" />
+    <TextView
+      android:id="@+id/beta_streak_count"
+      android:layout_width="match_parent"
+      android:layout_height="36dp"
+      android:text="0"
+      android:textColor="@color/beta_streak_foreground"
+      android:textSize="34sp"
+      android:textStyle="bold"
+      android:includeFontPadding="false"
+      android:maxLines="1"
+      android:autoSizeTextType="uniform"
+      android:autoSizeMinTextSize="16sp"
+      android:autoSizeMaxTextSize="34sp"
+      android:autoSizeStepGranularity="1sp"
+      android:importantForAccessibility="no" />
+    <TextView
+      android:id="@+id/beta_streak_days"
+      android:layout_width="match_parent"
+      android:layout_height="14dp"
+      android:text="dias seguidos"
+      android:textColor="@color/beta_streak_foreground"
+      android:textSize="11sp"
+      android:maxLines="1"
+      android:includeFontPadding="false"
+      android:importantForAccessibility="no" />
+    <TextView
+      android:id="@+id/beta_streak_status"
+      android:layout_width="match_parent"
+      android:layout_height="28dp"
+      android:layout_marginTop="2dp"
+      android:gravity="center_vertical"
+      android:text="@string/beta_streak_widget_start"
+      android:textColor="@color/beta_streak_foreground_muted"
+      android:textSize="11sp"
+      android:includeFontPadding="false"
+      android:maxLines="2"
+      android:ellipsize="end"
+      android:autoSizeTextType="uniform"
+      android:autoSizeMinTextSize="9sp"
+      android:autoSizeMaxTextSize="11sp"
+      android:importantForAccessibility="no" />
+  </LinearLayout>
+</LinearLayout>

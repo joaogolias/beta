@@ -1,4 +1,9 @@
-import { useLayoutEffect, useState, useSyncExternalStore } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import {
   useConvexConnectionState,
   useMutation,
@@ -44,7 +49,7 @@ export function StudySettings({
   preferences: StudyPreferences;
   onPreferencesChange: (patch: Partial<StudyPreferences>) => void;
   onModeChange: (mode: StudyMode) => void;
-  onStart: (sessionId: Id<'studySessions'>) => void;
+  onStart: (sessionId: Id<'studySessions'>, questId?: Id<'quests'>) => void;
 }) {
   const active = useQuery(api.study.active, {});
   const start = useMutation(api.study.start);
@@ -65,9 +70,9 @@ export function StudySettings({
   return (
     <View style={settingsStyles.screen}>
       <View style={settingsStyles.heading}>
-        <Text style={settingsStyles.eyebrow}>BENKYOU / ESTUDAR</Text>
+        <Text style={settingsStyles.eyebrow}>暗記 · ANKI / FLASHCARDS</Text>
         <Text accessibilityRole="header" style={settingsStyles.title}>
-          勉強
+          Anki
         </Text>
         <Text style={settingsStyles.intro}>
           Um card de cada vez.{'\n'}No seu ritmo.
@@ -86,7 +91,7 @@ export function StudySettings({
             <Action
               label="Retomar sessão"
               disabled={command.busy}
-              onPress={() => onStart(active._id)}
+              onPress={() => onStart(active._id, active.questId)}
             />
             <Action
               secondary
@@ -95,7 +100,7 @@ export function StudySettings({
               onPress={() => {
                 void command.run(async () => {
                   await finish({ sessionId: active._id });
-                  onStart(active._id);
+                  onStart(active._id, active.questId);
                 });
               }}
             />
@@ -282,9 +287,17 @@ export function StudySettings({
 export function StudySession({
   sessionId,
   onSettings,
+  quest,
 }: {
   sessionId: Id<'studySessions'>;
   onSettings: () => void;
+  quest?: {
+    title: string;
+    total: number;
+    completed: number;
+    counting?: boolean;
+    onCompleted: () => void;
+  };
 }) {
   const projection = useQuery(api.study.current, { sessionId });
   const reveal = useMutation(api.study.reveal);
@@ -306,6 +319,11 @@ export function StudySession({
     projectionState.receive(projection);
   }, [projection, projectionState]);
   const shown = visible ?? projection;
+  const busy = cardBusy || command.busy;
+  useEffect(() => {
+    if (quest && shown?.session.status === 'completed' && !busy)
+      quest.onCompleted();
+  }, [quest, shown?.session.status, busy]);
   if (storage.ready && !projection)
     return (
       <View style={ui.stack}>
@@ -313,12 +331,14 @@ export function StudySession({
           Esta sessão não está mais disponível neste aparelho. Seus resultados
           sincronizados continuam no progresso.
         </Notice>
-        <Action label="Voltar aos estudos" onPress={onSettings} />
+        <Action
+          label={quest ? 'Voltar às quests' : 'Voltar aos estudos'}
+          onPress={onSettings}
+        />
       </View>
     );
   if (!shown) return <Loading label="Preparando seu card…" />;
   const { session, presentation, undoPresentationId } = shown;
-  const busy = cardBusy || command.busy;
   const revision = session.revision ?? 0;
   const goBack = () => {
     if (busy || !undoPresentationId) return;
@@ -365,6 +385,12 @@ export function StudySession({
       </Text>
     </Pressable>
   );
+  if (quest && session.status !== 'active')
+    return session.status === 'completed' ? (
+      <Loading label="Continuando sua quest…" />
+    ) : (
+      <Action label="Voltar às quests" onPress={onSettings} />
+    );
   if (session.status !== 'active')
     return (
       <View style={studyStyles.summary}>
@@ -421,12 +447,19 @@ export function StudySession({
         <View>
           <Text style={studyStyles.eyebrow}>beta · ESTUDAR</Text>
           <Text accessibilityRole="header" style={studyStyles.sessionTitle}>
-            {session.mode === 'direct' ? 'No seu ritmo' : 'Um pouco a cada vez'}
+            {quest?.title ??
+              (session.mode === 'direct'
+                ? 'No seu ritmo'
+                : 'Um pouco a cada vez')}
           </Text>
         </View>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Pausar sessão e voltar à configuração"
+          accessibilityLabel={
+            quest
+              ? 'Pausar e voltar às quests'
+              : 'Pausar sessão e voltar à configuração'
+          }
           disabled={busy}
           onPress={onSettings}
           style={[studyStyles.pause, busy && { opacity: 0.4 }]}
@@ -434,7 +467,15 @@ export function StudySession({
           <Text style={studyStyles.pauseText}>Pausar</Text>
         </Pressable>
       </View>
-      <SessionProgress session={session} />
+      {quest ? (
+        quest.counting === false ? null : (
+          <Text style={studyStyles.progressCount}>
+            Card {Math.min(quest.completed + 1, quest.total)} de {quest.total}
+          </Text>
+        )
+      ) : (
+        <SessionProgress session={session} />
+      )}
       <View style={studyStyles.deckToolbar}>
         {backButton}
         <Text style={studyStyles.gestureNote}>
@@ -482,19 +523,25 @@ export function StudySession({
         />
       ) : (
         <Notice error>
-          O card atual não está disponível. Volte à configuração e retome a
-          sessão.
+          {quest
+            ? 'Este card da quest não está disponível. Volte às quests e atualize seus dados para continuar com a seleção original.'
+            : 'O card atual não está disponível. Volte à configuração e retome a sessão.'}
         </Notice>
       )}
       {command.error && <Notice error>{command.error}</Notice>}
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Encerrar sessão e ver resumo"
+        accessibilityLabel={
+          quest
+            ? 'Encerrar por hoje e voltar às quests'
+            : 'Encerrar sessão e ver resumo'
+        }
         disabled={busy}
         style={[studyStyles.endSession, busy && { opacity: 0.4 }]}
         onPress={() => {
           void command.run(async () => {
             await finish({ sessionId });
+            if (quest) onSettings();
           });
         }}
       >
@@ -599,9 +646,9 @@ const studyStyles = StyleSheet.create({
     paddingHorizontal: 13,
     justifyContent: 'center',
     borderRadius: 14,
-    backgroundColor: palette.mountainSoft,
+    backgroundColor: palette.stoneSoft,
   },
-  pauseText: { fontSize: 12, fontWeight: '700', color: palette.mountainDeep },
+  pauseText: { fontSize: 12, fontWeight: '700', color: palette.stoneDeep },
   progress: { gap: 8 },
   progressTop: {
     flexDirection: 'row',
@@ -619,9 +666,13 @@ const studyStyles = StyleSheet.create({
     borderRadius: 8,
     overflow: 'hidden',
   },
-  progressFill: { height: 7, backgroundColor: palette.blue, borderRadius: 8 },
+  progressFill: {
+    height: 7,
+    backgroundColor: palette.primary,
+    borderRadius: 8,
+  },
   milestone: {
-    color: palette.blueDeep,
+    color: palette.primaryDeep,
     fontSize: 12,
     lineHeight: 18,
     textAlign: 'center',
@@ -650,7 +701,7 @@ const studyStyles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 1.5,
-    color: palette.blueDeep,
+    color: palette.primaryDeep,
   },
   summaryTitle: {
     fontSize: 31,
@@ -677,7 +728,7 @@ const settingsStyles = StyleSheet.create({
   },
   heading: { gap: 8, paddingTop: 5 },
   eyebrow: {
-    color: palette.blue,
+    color: palette.primary,
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1.9,
@@ -725,8 +776,8 @@ const settingsStyles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   levelBadge: {
-    backgroundColor: palette.mountainSoft,
-    color: palette.mountainDeep,
+    backgroundColor: palette.stoneSoft,
+    color: palette.stoneDeep,
     fontWeight: '700',
     fontSize: 11,
     paddingVertical: 6,
@@ -741,7 +792,7 @@ const settingsStyles = StyleSheet.create({
     paddingHorizontal: 4,
     marginVertical: -10,
   },
-  adjustText: { color: palette.blue, fontSize: 12, fontWeight: '700' },
+  adjustText: { color: palette.primary, fontSize: 12, fontWeight: '700' },
   adjustments: {
     gap: 20,
     borderTopColor: palette.line,
@@ -760,8 +811,8 @@ const settingsStyles = StyleSheet.create({
     gap: 9,
   },
   selectedMode: {
-    backgroundColor: palette.blueSoft,
-    borderColor: palette.blue,
+    backgroundColor: palette.primarySoft,
+    borderColor: palette.primary,
   },
   modeMark: { color: palette.muted, fontSize: 25, fontWeight: '600' },
   modeTitle: {
@@ -770,12 +821,12 @@ const settingsStyles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 21,
   },
-  selectedModeText: { color: palette.blueDeep },
+  selectedModeText: { color: palette.primaryDeep },
   modeDetail: { color: palette.muted, fontSize: 12, lineHeight: 19 },
   resume: {
     gap: 12,
     padding: 20,
-    backgroundColor: palette.mountainSoft,
+    backgroundColor: palette.stoneSoft,
     borderRadius: 22,
   },
   footnote: {

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { IbexMascot } from '../brand/IbexMascot';
+import { RockTexture } from '../brand/RockTexture';
 import { palette } from '../theme';
 import { useStreak } from './Provider';
 import { isStreakNativeAvailable, requestStreakWidgetPin } from './native';
@@ -13,10 +14,11 @@ export function StreakCard() {
   if (!streak.ready && !streak.error) return null;
   return (
     <View style={styles.card}>
+      <RockTexture />
       <Pressable
         accessibilityRole="button"
         accessibilityState={{ expanded }}
-        accessibilityLabel={`${streak.currentStreak} ${streak.currentStreak === 1 ? 'dia seguido' : 'dias seguidos'} com a Betinha. Ver sequência e lembretes`}
+        accessibilityLabel={`${streak.currentStreak} ${streak.currentStreak === 1 ? 'dia seguido' : 'dias seguidos'} com a Betinha. ${streak.error ? 'A sequência precisa de atenção. ' : ''}Ver sequência e lembretes`}
         onPress={() => setExpanded(!expanded)}
         style={styles.heading}
       >
@@ -39,7 +41,9 @@ export function StreakCard() {
                     : 'Um novo dia, mais um passo.'}
           </Text>
         </View>
-        <Text style={styles.expand}>{expanded ? '−' : '+'}</Text>
+        <Text style={[styles.expand, streak.error && styles.errorIndicator]}>
+          {expanded ? '−' : streak.error ? '!' : '+'}
+        </Text>
       </Pressable>
       {expanded && (
         <View style={styles.details}>
@@ -67,7 +71,7 @@ export function StreakCard() {
                       .setReminders(enabled)
                       .finally(() => setBusy(false));
                   }}
-                  trackColor={{ true: palette.blue, false: palette.line }}
+                  trackColor={{ true: palette.primary, false: palette.line }}
                 />
               </View>
               <Pressable
@@ -110,20 +114,21 @@ export function StreakCard() {
               Salvo neste aparelho. Sincroniza ao conectar.
             </Text>
           )}
+          {streak.error && (
+            <Text accessibilityRole="alert" style={styles.error}>
+              {streak.error}
+            </Text>
+          )}
         </View>
-      )}
-      {streak.error && (
-        <Text accessibilityRole="alert" style={styles.error}>
-          {streak.error}
-        </Text>
       )}
     </View>
   );
 }
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: palette.mountainSoft,
+    backgroundColor: palette.secondarySoft,
     borderRadius: 22,
+    overflow: 'hidden',
     padding: 14,
     gap: 12,
     marginBottom: 16,
@@ -139,11 +144,17 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 1.3,
-    color: palette.mountainDeep,
+    color: palette.secondaryDeep,
   },
   count: { fontSize: 23, fontWeight: '900', color: palette.ink },
   caption: { color: palette.muted, fontSize: 12, lineHeight: 18 },
-  expand: { color: palette.mountain, fontSize: 24 },
+  expand: {
+    color: palette.secondary,
+    fontSize: 24,
+    width: 18,
+    textAlign: 'center',
+  },
+  errorIndicator: { color: palette.error },
   details: {
     gap: 14,
     borderTopWidth: 1,
@@ -159,6 +170,6 @@ const styles = StyleSheet.create({
     backgroundColor: palette.surface,
     borderRadius: 12,
   },
-  widgetLabel: { color: palette.mountainDeep, fontSize: 13, fontWeight: '700' },
+  widgetLabel: { color: palette.stoneDeep, fontSize: 13, fontWeight: '700' },
   error: { color: palette.error, fontSize: 12, lineHeight: 18 },
 });

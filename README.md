@@ -1,24 +1,26 @@
 # beta
 
-Aplicativo Android para estudar japonês com um catálogo pessoal de kanji, vocabulário e gramática, organizado de N5 a N1. A base usa React Native com Expo, autenticação Clerk e backend Convex. O nome visível é **beta**; o repositório, os ambientes e os identificadores técnicos continuam como Babel Crux para preservar instalações e contas existentes.
+Aplicativo Android para estudar japonês com um catálogo pessoal de kanji, vocabulário e gramática, organizado de N5 a N1. A base usa React Native com Expo, autenticação Clerk e backend Convex. A marca, os pacotes e os artefatos usam **beta**, no repositório [joaogolias/beta](https://github.com/joaogolias/beta).
 
 ## Escopo desta base
 
-- [BAB-5 — Scaffolding 1](https://linear.app/babel-crux/issue/BAB-5): cadastro e login por Google ou e-mail e senha, recuperação de senha e saída; sessão persistida com o cache oficial do Clerk em SecureStore; área autenticada com navegação inicial. O cadastro não exige confirmação de e-mail, e o login não usa Device Trust.
-- [BAB-6 — Scaffolding 2](https://linear.app/babel-crux/issue/BAB-6): validação do token Clerk pelo Convex, criação idempotente do perfil e consultas restritas à identidade autenticada. A troca de conta descarta o cliente e o cache Convex anteriores.
-- [BAB-7 — Scaffolding 3](https://linear.app/babel-crux/issue/BAB-7): validação automática, build manual de APK release com assinatura estável por ambiente, instalação por USB/ADB e deploy do backend em workflow separado.
+- BETA-5 — Scaffolding 1: cadastro e login por Google ou e-mail e senha, recuperação de senha e saída; sessão persistida com o cache oficial do Clerk em SecureStore; área autenticada com navegação inicial. O cadastro não exige confirmação de e-mail, e o login não usa Device Trust.
+- BETA-6 — Scaffolding 2: validação do token Clerk pelo Convex, criação idempotente do perfil e consultas restritas à identidade autenticada. A troca de conta descarta o cliente e o cache Convex anteriores.
+- BETA-7 — Scaffolding 3: validação automática, build manual de APK release com assinatura estável por ambiente, instalação por USB/ADB e deploy do backend em workflow separado.
 
-- [BAB-8 — Alfabeto](https://linear.app/babel-crux/issue/BAB-8): biblioteca pessoal de kanji com significados, kun’yomi, on’yomi, radicais, exemplos, múltiplos níveis JLPT, edição e arquivamento; estudo direto ou adaptativo com revelação, três avaliações, retomada e histórico por versão.
-- [BAB-10 — MCP](https://linear.app/babel-crux/issue/BAB-10): servidor remoto com OAuth 2.0 do Clerk, PKCE e ferramentas para buscar, consultar, criar e atualizar caracteres da mesma biblioteca pessoal. Consulte [configuração e conexão MCP](docs/mcp.md).
-- [BAB-9 — Vocabulário](https://linear.app/babel-crux/issue/BAB-9): palavras e expressões pessoais com leitura em kana opcional, traduções em português e inglês, exemplos, níveis JLPT e cards automáticos; cadastro, busca, edição, arquivamento e integração aos estudos e histórico.
-- [BAB-11 — MCP de vocabulário](https://linear.app/babel-crux/issue/BAB-11): busca em todos os campos com AND/OR e filtro de nível, consulta por ID e alterações com as mesmas validações do aplicativo; permissões OAuth próprias de leitura e escrita.
-- [BAB-12 — Gramática](https://linear.app/babel-crux/issue/BAB-12): aba Bunpou com estruturas pessoais, explicação completa, resumo e exemplos opcionais, com cards automáticos; múltiplos níveis JLPT, edição, arquivo e integração aos estudos e histórico.
-- [BAB-13 — MCP de gramática](https://linear.app/babel-crux/issue/BAB-13): busca em todos os campos com AND/OR, consulta por ID e edição parcial; permissões OAuth `grammar:read` e `grammar:write`.
-- [BAB-14 — Cards de memória](https://linear.app/babel-crux/issue/BAB-14): sessões com ordem e conteúdo congelados, três avaliações, retomada, correção da última resposta e progresso filtrado por categoria e nível, separando cards ativos e arquivados.
-- [BAB-15 — Simulados JLPT](https://linear.app/babel-crux/issue/BAB-15): módulo Shiken separado dos cards, com provas de múltipla escolha, quatro áreas, blocos e tempos por nível, áudio, correção automática, histórico próprio e sincronização offline. Consulte [simulados e critérios de aplicação](docs/exams.md).
-- [BAB-18 — Uso offline](https://linear.app/babel-crux/issue/BAB-18): consulta e estudo no Benkyou e Shiken com conteúdo baixado, consentimento para entrar offline e sincronização ao escolher voltar online. Cadastro e edição exigem conexão.
-- [BAB-21 — Sequência diária](https://linear.app/babel-crux/issue/BAB-21): dias consecutivos de uso por conta, registro offline, contador na tela inicial do Android e lembretes opcionais nos dias sem uso.
-- [BAB-22 — Mascote ibex](https://linear.app/babel-crux/issue/BAB-22): Betinha, a ibex escaladora com pelagem natural, sem cachecol ou bochechas rosadas, na entrada, sequência diária, resumo de estudo, ícone e widget; cinco cenas de escalada aprovadas e animações curtas com suporte a movimento reduzido.
+- BETA-8 — Alfabeto: biblioteca pessoal de kanji com significados, kun’yomi, on’yomi, radicais, exemplos, múltiplos níveis JLPT, edição e arquivamento; estudo direto ou adaptativo com revelação, três avaliações, retomada e histórico por versão.
+- BETA-10 — MCP: servidor remoto com OAuth 2.0 do Clerk, PKCE e ferramentas para buscar, consultar, criar e atualizar caracteres da mesma biblioteca pessoal. Consulte [configuração e conexão MCP](docs/mcp.md).
+- BETA-9 — Vocabulário: palavras e expressões pessoais com leitura em kana opcional, traduções em português e inglês, exemplos, níveis JLPT e cards automáticos; cadastro, busca, edição, arquivamento e integração aos estudos e histórico.
+- BETA-11 — MCP de vocabulário: busca em todos os campos com AND/OR e filtro de nível, consulta por ID e alterações com as mesmas validações do aplicativo; permissões OAuth próprias de leitura e escrita.
+- BETA-12 — Gramática: aba Bunpou com estruturas pessoais, explicação completa, resumo e exemplos opcionais, com cards automáticos; múltiplos níveis JLPT, edição, arquivo e integração aos estudos e histórico.
+- BETA-13 — MCP de gramática: busca em todos os campos com AND/OR, consulta por ID e edição parcial; permissões OAuth `grammar:read` e `grammar:write`.
+- BETA-14 — Cards de memória: sessões com ordem e conteúdo congelados, três avaliações, retomada, correção da última resposta e progresso filtrado por categoria e nível, separando cards ativos e arquivados.
+- BETA-15 — Simulados JLPT: módulo Shiken separado dos cards, com provas de múltipla escolha, quatro áreas, blocos e tempos por nível, áudio, correção automática, histórico próprio e sincronização offline. Consulte [simulados e critérios de aplicação](docs/exams.md).
+- BETA-18 — Uso offline: consulta e estudo no Benkyou e Shiken com conteúdo baixado, consentimento para entrar offline e sincronização ao escolher voltar online. Cadastro e edição exigem conexão.
+- BETA-21 — Sequência diária: dias consecutivos de uso por conta, registro offline, contador na tela inicial do Android e lembretes opcionais nos dias sem uso.
+- BETA-22 — Mascote ibex: Betinha, a ibex escaladora com pelagem natural, sem cachecol ou bochechas rosadas, na entrada, sequência diária, resumo de estudo, ícone e widget; cinco cenas de escalada aprovadas e animações curtas com suporte a movimento reduzido.
+- BETA-25 — Quests: seleções exatas de Kanji/Kotoba/Bunpou e simulados, com início direto, retomada offline e conclusão do conjunto inteiro. Várias quests podem coexistir; o MCP oferece estatísticas por card para a automação escolher os alvos. Consulte [regras e decisões das quests](docs/quests.md).
+- BETA-26 — Histórias: **物語 · Monogatari**, dentro do Benkyou, com catálogo paginado N5–N1, toggle de furigana, tradução por parágrafo, perguntas de compreensão e retomada offline. O MCP oferece CRUD de histórias pessoais; edições preservam o conteúdo e o resultado das leituras iniciadas. Consulte [regras, decisões assumidas e três rodadas de UX](docs/stories.md).
 
 Esta versão tem alvo Android, sem publicação na Play Store. O modelo distingue caracteres, vocabulário, gramática e provas, idioma, sistema de escrita e detalhes específicos de kanji; a interface atual oferece japonês. O Shiken usa alternativas e correção automática. Seus resultados são acertos e percentuais do simulado, sem estimar a nota ou aprovação oficial do JLPT.
 
@@ -34,7 +36,7 @@ A ordenação é automática: kanji usa a primeira leitura kun’yomi, ou a prim
 
 A busca de vocabulário cobre expressão, leitura, traduções, exemplos, frente, verso e classificações. AND exige todos os termos e é o padrão; OR aceita qualquer termo. O nível restringe os resultados nos dois modos. A busca trata maiúsculas/minúsculas em texto latino e hiragana/katakana como equivalentes, preservando a escrita cadastrada.
 
-A navegação usa seis abas: **漢字 (Kanji)**, **ことば (Kotoba)**, **文法 (Bunpou)**, **試験 (Shiken)**, **勉強 (Benkyou)** e **進捗 (Progresso)**. As três bibliotecas de cards têm coleções visuais de N5 a N1 e uma lista contínua com chips de nível. A busca fica no ícone de lupa; arquivo, leituras e radicais ficam no painel de filtros. Cada biblioteca mantém sua coleção aberta ao trocar de aba ou consultar um card. O botão flutuante **勉強** abre a configuração com a categoria e o nível atuais, preservando tamanho e ordem da sessão. Shiken tem catálogo de provas por nível, aplicação cronometrada e histórico próprios, sem botão para estudar seus itens no Benkyou. A interface compartilha azul como cor principal, cinza de montanha como cor secundária e superfícies claras.
+A navegação usa seis abas: **漢字 (Kanji)**, **ことば (Kotoba)**, **文法 (Bunpou)**, **試験 (Shiken)**, **勉強 (Benkyou)** e **進捗 (Progresso)**. As três bibliotecas de cards têm coleções visuais de N5 a N1 e uma lista contínua com chips de nível. A busca fica no ícone de lupa; arquivo, leituras e radicais ficam no painel de filtros. Cada biblioteca mantém sua coleção aberta ao trocar de aba ou consultar um card. O botão flutuante **勉強** abre a configuração com a categoria e o nível atuais, preservando tamanho e ordem da sessão. Shiken tem catálogo de provas por nível, aplicação cronometrada e histórico próprios, sem botão para estudar seus itens no Benkyou. A interface usa verde pinheiro, terracota e ocre, com superfícies de areia e giz e texturas discretas de rocha. Consulte a [paleta e a pesquisa do tema outdoor](docs/theme.md).
 
 Para estudar, toque no card para revelar o verso e deslize: **direita = Acertei**, **esquerda = Errei**. **Dois toques rápidos no conteúdo do verso = Acertei parcialmente**; um toque único volta à frente após uma breve espera para distinguir os dois gestos. O movimento vertical continua rolando a tela. Os gestos avaliam e avançam sem seleção prévia; os três botões oferecem as mesmas ações. O card acompanha o arrasto horizontal e volta ao centro se o gesto for cancelado. A resposta só avança após ser salva; em caso de falha, o card permanece disponível para tentar novamente.
 
@@ -52,27 +54,27 @@ Os dias ficam salvos por conta e ambiente, mesmo offline, e são reunidos com os
 
 Toque no contador com a Betinha para ver o recorde, ativar **Lembrete diário** ou escolher **Adicionar contador à tela inicial**. O lembrete requer sua autorização e chega por volta das 19h, somente se o app ainda não tiver sido usado naquele dia. O horário segue o fuso do aparelho; o Android pode atrasar a entrega e a atualização do widget para poupar bateria. Na lista de widgets do launcher, procure **beta · Betinha**. O widget se adapta a formatos compactos, altos e largos; tocar nele abre o app.
 
-Widget e lembretes usam o módulo local `mobile/modules/babel-streak` e exigem um novo APK; não estão disponíveis no Expo Go ou em um APK antigo. O módulo é incluído automaticamente pelo Expo durante o prebuild. Para verificar seu calendário e agendamento, execute `./gradlew :babel-streak:testDebugUnitTest` dentro de `mobile/android/` após o prebuild.
+Widget e lembretes usam o módulo local `mobile/modules/beta-streak` e exigem um novo APK; não estão disponíveis no Expo Go ou em um APK antigo. O módulo é incluído automaticamente pelo Expo durante o prebuild. Para verificar seu calendário e agendamento, execute `./gradlew :beta-streak:testDebugUnitTest` dentro de `mobile/android/` após o prebuild.
 
 ### Mascote e arquivos de marca
 
-Betinha é a mascote ibex do Babel Crux. As cenas aprovadas são PNGs transparentes em `mobile/assets/brand/betinha-*.png`: boas-vindas diante de uma montanha, celebração escalando um boulder grande, descanso sobre um crash pad azul, tristeza ao perder os apoios no boulder e expressão brava com magnésio pela pelagem, barba e um chifre. O retrato mantém o rosto aprovado e os chifres corrigidos no ícone, sobre um degradê cinza com textura de rocha, também aplicado ao fundo do ícone adaptativo Android. Consulte [arquivos de marca, origem das imagens e prompts](mobile/assets/brand/README.md).
+Betinha é a mascote ibex do beta. As cenas aprovadas são PNGs transparentes em `mobile/assets/brand/betinha-*.png`: boas-vindas diante de uma montanha, celebração escalando um boulder grande, descanso sobre um crash pad azul, tristeza ao perder os apoios no boulder e expressão brava com magnésio pela pelagem, barba e um chifre. O retrato mantém o rosto aprovado e os chifres corrigidos no ícone, sobre um degradê cinza com textura de rocha, também aplicado ao fundo do ícone adaptativo Android. Consulte [arquivos de marca, origem das imagens e prompts](mobile/assets/brand/README.md).
 
 Execute `npm run assets:brand` para empacotar esses arquivos nos ícones Android, tela de abertura, favicon e imagens do widget; o comando não redesenha a mascote nem altera as cenas aprovadas. Os chifres ficam dentro da área segura da máscara circular Android, e o ícone monocromático usa a transparência do retrato. As animações são curtas, param quando o app sai do primeiro plano e ficam desativadas quando o sistema pede movimento reduzido. A expressão brava acompanha o aviso de sequência em risco a partir das 19h; a triste acompanha uma sequência perdida.
 
-As referências de desenho e movimento foram as [diretrizes de ilustração do Duolingo](https://design.duolingo.com/identity/imagery), a [evolução da silhueta do Duo](https://blog.duolingo.com/reshaping-duo/) e as [animações de personagens durante os exercícios](https://blog.duolingo.com/building-character/). Os desenhos e animações entregues são próprios do Babel Crux.
+As referências de desenho e movimento foram as [diretrizes de ilustração do Duolingo](https://design.duolingo.com/identity/imagery), a [evolução da silhueta do Duo](https://blog.duolingo.com/reshaping-duo/) e as [animações de personagens durante os exercícios](https://blog.duolingo.com/building-character/). Os desenhos e animações entregues são próprios do beta.
 
 ### Biblioteca offline
 
 Entre na conta com internet ao menos uma vez neste aparelho e aguarde a biblioteca ser preparada. Os cards baixados ficam disponíveis para consulta e estudo; simulados do Shiken exigem também suas mídias baixadas. Cadastro, edição, arquivamento e restauração ficam disponíveis somente online. É possível fechar e reabrir o app: biblioteca, sessão e respostas pendentes ficam salvas localmente. Um card só avança depois que a resposta foi gravada no aparelho.
 
-Ao perder internet, um modal oferece continuar offline. Recusar impede novos convites até reiniciar o app; a engrenagem ao lado do ícone de sair permite ativar o modo a qualquer momento. Aceitar mantém o modo offline mesmo quando a conexão volta. **Sincronizar e voltar online** envia as pendências e atualiza a biblioteca antes de sair do modo; falhas preservam o estudo. No modo online, o envio é automático com conexão e autenticação. Entrar em uma conta nova exige internet; os dados locais de cada conta e ambiente ficam separados. Ao sair com pendências, o app avisa e mantém a fila para a próxima entrada na mesma conta. Desinstalar o app ou apagar seus dados remove as alterações ainda não sincronizadas.
+Ao perder internet, um modal oferece continuar offline. Recusar impede novos convites até reiniciar o app; a engrenagem ao lado do ícone de sair permite ativar o modo a qualquer momento. Aceitar mantém o modo offline mesmo quando a conexão volta. **Sincronizar e voltar online** envia as pendências e atualiza a biblioteca antes de sair do modo; falhas preservam o estudo. No modo online, o progresso de exercícios e provas é enviado automaticamente com conexão e autenticação, sem baixar todos os catálogos a cada resposta. Os catálogos atualizam silenciosamente ao abrir/retornar ou sair para segundo plano, ao puxar uma lista para baixo ou pela ação manual do indicador no topo. Não há atualização periódica enquanto se navega. O indicador verde, amarelo ou vermelho tem tamanho fixo e abre detalhes e recuperação ao tocar. Entrar em uma conta nova exige internet; os dados locais de cada conta e ambiente ficam separados. Ao sair com pendências, o app avisa e mantém a fila para a próxima entrada na mesma conta. Desinstalar o app ou apagar seus dados remove as alterações ainda não sincronizadas.
 
 Se o mesmo card ou a sessão mudar em outro aparelho, o app preserva a fila e mostra o conflito. **Usar alterações deste aparelho** pede confirmação antes de substituir o card na nuvem ou encerrar a outra sessão ativa. **Usar versão da nuvem** pede confirmação para descartar todas as alterações ainda pendentes deste aparelho, incluindo respostas de estudo, antes de recarregar a conta. Não há descarte automático em caso de conflito.
 
 A biblioteca baixada pode ser consultada offline; o histórico local inclui as 100 tentativas mais recentes baixadas. O progresso considera os totais da conta e as respostas locais pendentes. Novos cards, edições e arquivos remotos só chegam no modo online. Cards arquivados antes da apresentação são pulados e deixam de contar no total exibido da sessão; o histórico já registrado permanece disponível.
 
-O desenho da interação se inspira no toque para virar e na navegação por gesto do [Quizlet](https://help.quizlet.com/hc/en-us/articles/360030988091) e do [DuoCards](https://app.duocards.com/library/s/how-to-make-language-learning-with-flashcards-as-effective-as-possible), mantendo a avaliação explícita com três resultados do Babel Crux. A sessão usa uma pilha visual de cards, progresso e animações respeitando a preferência de movimento reduzido.
+O desenho da interação se inspira no toque para virar e na navegação por gesto do [Quizlet](https://help.quizlet.com/hc/en-us/articles/360030988091) e do [DuoCards](https://app.duocards.com/library/s/how-to-make-language-learning-with-flashcards-as-effective-as-possible), mantendo a avaliação explícita com três resultados do beta. A sessão usa uma pilha visual de cards, progresso e animações respeitando a preferência de movimento reduzido.
 
 ## Estrutura
 
@@ -114,12 +116,12 @@ Em User & authentication → SSO connections, habilite Google para **sign-up and
 
 Em Native applications → **Allowlist for mobile SSO redirect**, cadastre o endereço do ambiente correspondente, sem curingas:
 
-| Ambiente        | Retorno OAuth                  |
-| --------------- | ------------------------------ |
-| Desenvolvimento | `babelcrux-dev://sso-callback` |
-| Produção        | `babelcrux://sso-callback`     |
+| Ambiente        | Retorno OAuth             |
+| --------------- | ------------------------- |
+| Desenvolvimento | `beta-dev://sso-callback` |
+| Produção        | `beta://sso-callback`     |
 
-Os schemes são definidos em `mobile/app.config.ts`. Mudanças neles exigem novo build nativo. Teste o Google no APK ou em um build de desenvolvimento instalado; o Expo Go não representa esse retorno com scheme próprio. [Redirecionamento mobile no Clerk](https://clerk.com/docs/guides/development/deployment/expo).
+Os schemes são definidos em `mobile/app.config.ts`. Antes de usar Google no novo APK, adicione os retornos acima à allowlist da instância Clerk correspondente. Mudanças neles exigem novo build nativo. Teste o Google no APK ou em um build de desenvolvimento instalado; o Expo Go não representa esse retorno com scheme próprio. [Redirecionamento mobile no Clerk](https://clerk.com/docs/guides/development/deployment/expo).
 
 O Clerk também controla a vinculação entre métodos. Se uma conta criada com senha possui e-mail ainda não verificado e a pessoa usa Google com o mesmo endereço, o Clerk pode exigir recuperação da senha antes de vincular. O app orienta usar o método original ou recuperar a senha; o backend nunca junta usuários apenas pelo endereço de e-mail. [Vinculação de contas](https://clerk.com/docs/guides/configure/auth-strategies/social-connections/account-linking).
 
@@ -132,7 +134,7 @@ cd ..
 npm run backend:dev
 ```
 
-O deployment usado no desenvolvimento inicial é `dev:kindhearted-hare-87`, do projeto Babel Crux. Os arquivos `.env.local` desta máquina já apontam para ele. O fluxo de desenvolvimento observa alterações e atualiza as funções e tipos gerados. Em outro terminal:
+O deployment usado no desenvolvimento inicial é `dev:kindhearted-hare-87`, do projeto beta. Os arquivos `.env.local` desta máquina já apontam para ele. O fluxo de desenvolvimento observa alterações e atualiza as funções e tipos gerados. Em outro terminal:
 
 ```sh
 npm start
@@ -144,15 +146,17 @@ O modo de desenvolvimento usa Metro. Para instalar um APK que abre com o computa
 
 ## Configuração por ambiente
 
-| Configuração    | Desenvolvimento         | Produção                 |
-| --------------- | ----------------------- | ------------------------ |
-| `APP_ENV`       | `development`           | `production`             |
-| Clerk           | `pk_test_...`           | `pk_live_...`            |
-| Convex          | Deployment dev          | Deployment prod separado |
-| Package Android | `com.babelcrux.app.dev` | `com.babelcrux.app`      |
-| Assinatura      | Keystore dev estável    | Keystore prod estável    |
+| Configuração    | Desenvolvimento      | Produção                 |
+| --------------- | -------------------- | ------------------------ |
+| `APP_ENV`       | `development`        | `production`             |
+| Clerk           | `pk_test_...`        | `pk_live_...`            |
+| Convex          | Deployment dev       | Deployment prod separado |
+| Package Android | `com.beta.app.dev`   | `com.beta.app`           |
+| Assinatura      | Keystore dev estável | Keystore prod estável    |
 
-Os arquivos de exemplo de produção documentam a configuração; não provisionam recursos de produção. `EXPO_PUBLIC_*` é incorporado ao aplicativo e só pode conter informação pública. Chaves secretas, tokens de deploy e assinatura ficam fora do Git. A preparação de APK carrega `.env.android.local` da raiz e desativa a combinação automática de outros arquivos `.env` pelo Expo.
+O inventário dos serviços, estado real e roteiro de ativação estão em [Preparar produção](docs/production.md). Os exemplos documentam a configuração; não provisionam recursos. `EXPO_PUBLIC_*` é incorporado ao aplicativo e só pode conter informação pública. Chaves secretas, tokens de deploy e assinatura ficam fora do Git.
+
+Gere o APK com `npm run android:apk -- --environment development` ou `--environment production`. Cada ambiente usa `.env.android.<ambiente>.local`; somente DEV aceita o arquivo legado `.env.android.local`. A leitura automática de outros `.env` pelo Expo fica desativada. DEV tem identificação no ícone e uma faixa permanente nas telas, inclusive em builds release; PROD mantém o ícone original e não exibe a faixa.
 
 ## Verificação
 

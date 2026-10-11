@@ -14,6 +14,8 @@ import { createTestBackend, learnerIdentity } from './test-support.helpers';
 import { handleMcpHttp } from './mcpHttp';
 import {
   authenticateMcp,
+  readMcpConfiguration,
+  McpAccessError,
   resourceMetadata,
   READ_SCOPE,
   WRITE_SCOPE,
@@ -21,6 +23,13 @@ import {
   VOCABULARY_WRITE_SCOPE,
   GRAMMAR_READ_SCOPE,
   GRAMMAR_WRITE_SCOPE,
+  QUESTS_READ_SCOPE,
+  QUESTS_WRITE_SCOPE,
+  STUDY_READ_SCOPE,
+  SHIKEN_READ_SCOPE,
+  SHIKEN_WRITE_SCOPE,
+  STORIES_READ_SCOPE,
+  STORIES_WRITE_SCOPE,
   OAUTH_SCOPES,
 } from './mcpAuth';
 import type { McpConfiguration } from './mcpAuth';
@@ -35,8 +44,32 @@ import {
 } from './mcpSchemas';
 import type { VocabularyCreateInput } from './vocabularyDomain';
 import type { GrammarCreateInput } from './grammarDomain';
+import {
+  questResultSchema,
+  questListResultSchema,
+  studyProgressResultSchema,
+  studyCardsResultSchema,
+  shikenSearchResultSchema,
+  shikenHistoryResultSchema,
+  shikenPaperResultSchema,
+} from './mcpPlanningSchemas';
+import {
+  shikenContentResultSchema,
+  shikenMediaPrepareResultSchema,
+  shikenMediaResultSchema,
+} from './mcpShikenSchemas';
+import type { PaperInput } from '../../shared/jlpt';
+import type { QuestCreateInput } from './questsValidators';
+import {
+  storyCreateSchema,
+  storyUpdateSchema,
+  storyResultSchema,
+  storyGetResultSchema,
+  storyListResultSchema,
+} from './mcpStoriesSchemas';
+import type { StoryContent } from '../../shared/stories';
 
-const resource = 'https://babel-test.convex.site/mcp';
+const resource = 'https://beta-test.convex.site/mcp';
 const issuer = learnerIdentity.issuer;
 const toolNames = [
   'search_alphabet',
@@ -53,15 +86,126 @@ const toolNames = [
   'create_grammar',
   'update_grammar',
   'set_grammar_archived',
+  'list_quests',
+  'get_quest',
+  'create_quest',
+  'cancel_quest',
+  'get_study_progress',
+  'get_study_cards',
+  'search_shiken_papers',
+  'get_shiken_paper',
+  'create_shiken_paper',
+  'get_shiken_paper_content',
+  'prepare_shiken_media_upload',
+  'get_shiken_media',
+  'get_shiken_history',
+  'list_stories',
+  'get_story',
+  'create_story',
+  'update_story',
+  'delete_story',
+  'set_story_archived',
 ];
 const config: McpConfiguration = {
   resource,
   issuer,
-  secretKey: 'sk_test_babel_crux_mcp_unit_test',
+  secretKey: 'sk_test_beta_mcp_unit_test',
   publishableKey: `pk_test_${btoa(`${new URL(issuer).host}$`)}`,
-  allowedClientIds: ['babel-mcp-client'],
+  allowedClientIds: ['beta-mcp-client'],
   allowedOrigins: ['https://chatgpt.com'],
 };
+
+const configurationEnv = {
+  MCP_RESOURCE_URL: resource,
+  CLERK_JWT_ISSUER_DOMAIN: issuer,
+  CLERK_SECRET_KEY: config.secretKey,
+  CLERK_PUBLISHABLE_KEY: config.publishableKey,
+  MCP_ALLOWED_OAUTH_CLIENT_IDS: config.allowedClientIds.join(','),
+  MCP_ALLOWED_ORIGINS: config.allowedOrigins.join(','),
+};
+
+describe('MCP deployment configuration', () => {
+  test('accepts matching development keys with padded or unpadded publishable keys and an optional site URL', () => {
+    for (const padding of [true, false]) {
+      const configuration = readMcpConfiguration({
+        ...configurationEnv,
+        CLERK_SECRET_KEY: ` ${config.secretKey} `,
+        CLERK_PUBLISHABLE_KEY: padding
+          ? config.publishableKey
+          : config.publishableKey.replace(/=+$/, ''),
+        CLERK_JWT_ISSUER_DOMAIN: `${issuer}/`,
+        ...(padding ? { CONVEX_SITE_URL: new URL(resource).origin } : {}),
+      });
+      expect(configuration).toMatchObject({
+        resource,
+        issuer,
+        secretKey: config.secretKey,
+        allowedClientIds: config.allowedClientIds,
+      });
+    }
+  });
+
+  test('accepts a matching production instance without hardcoding a deployment or Clerk domain', () => {
+    const productionIssuer = 'https://clerk.study.example';
+    const configuration = readMcpConfiguration({
+      ...configurationEnv,
+      CLERK_SECRET_KEY: 'sk_live_production_unit_test',
+      CLERK_PUBLISHABLE_KEY: `pk_live_${btoa('clerk.study.example$')}`,
+      CLERK_JWT_ISSUER_DOMAIN: productionIssuer,
+      MCP_RESOURCE_URL: 'https://api.study.example/mcp',
+      CONVEX_SITE_URL: 'https://api.study.example/',
+    });
+    expect(configuration).toMatchObject({
+      resource: 'https://api.study.example/mcp',
+      issuer: productionIssuer,
+    });
+  });
+
+  test('rejects mixed environments, instances, deployments, and malformed keys without exposing configuration', () => {
+    const invalidConfigurations = [
+      { CLERK_SECRET_KEY: 'sk_live_secret_do_not_expose' },
+      {
+        CLERK_PUBLISHABLE_KEY: config.publishableKey.replace(
+          'pk_test_',
+          'pk_live_',
+        ),
+      },
+      { CLERK_JWT_ISSUER_DOMAIN: 'https://different.clerk.accounts.dev' },
+      { CLERK_JWT_ISSUER_DOMAIN: `${issuer}/unexpected` },
+      { CLERK_JWT_ISSUER_DOMAIN: `${issuer}:8443` },
+      { CONVEX_SITE_URL: 'https://different-deployment.convex.site' },
+      { CONVEX_SITE_URL: `${new URL(resource).origin}/unexpected` },
+      { CONVEX_SITE_URL: '' },
+      { CLERK_SECRET_KEY: 'sk_test_' },
+      { CLERK_SECRET_KEY: 'secret_without_environment' },
+      { CLERK_PUBLISHABLE_KEY: 'pk_test_not-base64' },
+      { CLERK_PUBLISHABLE_KEY: `pk_test_${btoa(new URL(issuer).host)}` },
+      { CLERK_PUBLISHABLE_KEY: `pk_test_${btoa(`${new URL(issuer).host}$$`)}` },
+      {
+        CLERK_PUBLISHABLE_KEY: `pk_test_${btoa(`${new URL(issuer).host}/unexpected$`)}`,
+      },
+      {
+        CLERK_PUBLISHABLE_KEY: `pk_test_${btoa(`other@${new URL(issuer).host}$`)}`,
+      },
+    ];
+    for (const overrides of invalidConfigurations) {
+      expect(() =>
+        readMcpConfiguration({ ...configurationEnv, ...overrides }),
+      ).toThrowError(
+        new McpAccessError(503, 'O servidor MCP ainda não está configurado.'),
+      );
+      try {
+        readMcpConfiguration({ ...configurationEnv, ...overrides });
+      } catch (error) {
+        expect(error).toBeInstanceOf(McpAccessError);
+        expect(error).toMatchObject({ status: 503 });
+        expect(String(error)).not.toContain('sk_');
+        expect(String(error)).not.toContain('pk_');
+        expect(String(error)).not.toContain('https://');
+      }
+    }
+  });
+});
 
 const kanji: AlphabetCreateInput = {
   language: 'ja',
@@ -128,14 +272,14 @@ async function accessToken(
 ) {
   const now = Math.floor(Date.now() / 1000);
   const header = base64url(
-    JSON.stringify({ alg: 'RS256', kid: 'babel-mcp-test-key', typ }),
+    JSON.stringify({ alg: 'RS256', kid: 'beta-mcp-test-key', typ }),
   );
   const body = base64url(
     JSON.stringify({
       iss: issuer,
       aud: resource,
       sub: learnerIdentity.subject,
-      client_id: 'babel-mcp-client',
+      client_id: 'beta-mcp-client',
       scope: `openid ${READ_SCOPE} ${WRITE_SCOPE}`,
       exp: now + 3600,
       iat: now - 10,
@@ -176,7 +320,7 @@ beforeEach(() => {
       if (url !== 'https://api.clerk.com/v1/jwks')
         throw new Error('Unexpected network request');
       return Response.json({
-        keys: [{ ...jwk, kid: 'babel-mcp-test-key', alg: 'RS256', use: 'sig' }],
+        keys: [{ ...jwk, kid: 'beta-mcp-test-key', alg: 'RS256', use: 'sig' }],
       });
     }),
   );
@@ -285,6 +429,112 @@ function endpoint(backend: ReturnType<typeof createTestBackend>) {
               archived,
             }),
         },
+        stories: {
+          list: ({ limit, cursor, ...filters }) =>
+            backend.query(internal.mcpGateway.listStories, {
+              tokenIdentifier,
+              ...filters,
+              paginationOpts: { numItems: limit, cursor },
+            }),
+          get: (id) =>
+            backend.query(internal.mcpGateway.getStory, {
+              tokenIdentifier,
+              id,
+            }),
+          create: (args) =>
+            backend.mutation(internal.mcpGateway.createStory, {
+              tokenIdentifier,
+              ...args,
+            }),
+          update: (args) =>
+            backend.mutation(internal.mcpGateway.updateStory, {
+              tokenIdentifier,
+              ...args,
+            }),
+          delete: (id) =>
+            backend.mutation(internal.mcpGateway.deleteStory, {
+              tokenIdentifier,
+              id,
+            }),
+          setArchived: (id, archived) =>
+            backend.mutation(internal.mcpGateway.setStoryArchived, {
+              tokenIdentifier,
+              id,
+              archived,
+            }),
+        },
+        quests: {
+          list: ({ limit, cursor, ...filters }) =>
+            backend.query(internal.mcpGateway.listQuests, {
+              tokenIdentifier,
+              ...filters,
+              paginationOpts: { numItems: limit, cursor },
+            }),
+          get: (id) =>
+            backend.query(internal.mcpGateway.getQuest, {
+              tokenIdentifier,
+              id,
+            }),
+          create: (quest) =>
+            backend.mutation(internal.mcpGateway.createQuest, {
+              tokenIdentifier,
+              quest,
+            }),
+          cancel: (id) =>
+            backend.mutation(internal.mcpGateway.cancelQuest, {
+              tokenIdentifier,
+              id,
+            }),
+        },
+        study: {
+          cards: ({ limit, cursor, ...filters }) =>
+            backend.query(internal.mcpGateway.studyCards, {
+              tokenIdentifier,
+              ...filters,
+              paginationOpts: { numItems: limit, cursor },
+            }),
+          progress: (filters) =>
+            backend.query(internal.mcpGateway.studyProgress, {
+              tokenIdentifier,
+              ...filters,
+            }),
+        },
+        shiken: {
+          search: ({ limit, cursor, ...filters }) =>
+            backend.query(internal.mcpGateway.searchShikenPapers, {
+              tokenIdentifier,
+              ...filters,
+              paginationOpts: { numItems: limit, cursor },
+            }),
+          get: (id) =>
+            backend.query(internal.mcpGateway.getShikenPaper, {
+              tokenIdentifier,
+              id,
+            }),
+          create: (args) =>
+            backend.mutation(internal.mcpGateway.createShikenPaper, {
+              tokenIdentifier,
+              ...args,
+            }),
+          content: (args) =>
+            backend.query(internal.mcpGateway.getShikenPaperContent, {
+              tokenIdentifier,
+              ...args,
+            }),
+          prepareMedia: (args) =>
+            backend.action(internal.shikenMedia.prepare, {
+              tokenIdentifier,
+              ...args,
+            }),
+          getMedia: (id) =>
+            backend.query(internal.shikenMedia.get, { tokenIdentifier, id }),
+          history: ({ limit, cursor, ...filters }) =>
+            backend.query(internal.mcpGateway.shikenHistory, {
+              tokenIdentifier,
+              ...filters,
+              paginationOpts: { numItems: limit, cursor },
+            }),
+        },
       }),
       config,
     );
@@ -295,7 +545,7 @@ async function connect(
   token: string,
 ) {
   const handle = endpoint(backend);
-  const client = new Client({ name: 'babel-test-client', version: '1.0.0' });
+  const client = new Client({ name: 'beta-test-client', version: '1.0.0' });
   const transport = new StreamableHTTPClientTransport(new URL(resource), {
     requestInit: { headers: { Authorization: `Bearer ${token}` } },
     fetch: async (input, init) => handle(new Request(input, init)),
@@ -568,13 +818,13 @@ describe('remote alphabet MCP', () => {
         request(await accessToken({ aud: [resource] })),
         config,
       ),
-    ).toMatchObject({ clientId: 'babel-mcp-client' });
+    ).toMatchObject({ clientId: 'beta-mcp-client' });
     for (const claims of [
       { exp: 1 },
       { iss: 'https://another.clerk.accounts.dev' },
       { aud: 'https://other-resource.example/mcp' },
-      { aud: 'babel-mcp-client' },
-      { aud: ['babel-mcp-client', 'https://other-resource.example/mcp'] },
+      { aud: 'beta-mcp-client' },
+      { aud: ['beta-mcp-client', 'https://other-resource.example/mcp'] },
       { client_id: 'another-client' },
       { sub: 'mch_machine' },
       { aud: null },
@@ -661,7 +911,7 @@ describe('remote alphabet MCP', () => {
           new Request(resource, {
             method: 'POST',
             headers,
-            body: 'a'.repeat(256 * 1024 + 1),
+            body: 'a'.repeat(512 * 1024 + 1),
           }),
         )
       ).status,
@@ -1733,6 +1983,2080 @@ describe('remote grammar MCP', () => {
       await legacy.close();
       await readOnly.close();
       await writer.close();
+    }
+  });
+});
+
+function plannedQuest(
+  cardIds: string[],
+  clientKey = 'weekly-2026-10-10',
+): QuestCreateInput {
+  const now = Date.now();
+  return {
+    clientKey,
+    title: 'Praticar japonês esta semana',
+    startsAt: now,
+    dueAt: now + 7 * 86_400_000,
+    timeZone: 'America/Sao_Paulo',
+    cardIds,
+  };
+}
+
+describe('MCP quests and personal study planning', () => {
+  test('selects personal stories for story-only and mixed quests without granting story-content access', async () => {
+    const backend = createTestBackend();
+    const learner = backend.withIdentity(learnerIdentity);
+    const otherLearner = backend.withIdentity({
+      ...learnerIdentity,
+      subject: 'user_other_story_quest',
+      tokenIdentifier: `${issuer}|user_other_story_quest`,
+    });
+    await learner.mutation(api.users.ensureCurrentUser, {});
+    await otherLearner.mutation(api.users.ensureCurrentUser, {});
+    const first = await learner.mutation(api.stories.create, {
+      clientKey: 'quest-story:first',
+      story: storyContent,
+    });
+    const second = await learner.mutation(api.stories.create, {
+      clientKey: 'quest-story:second',
+      story: { ...storyContent, title: 'Outra história' },
+    });
+    const foreign = await otherLearner.mutation(api.stories.create, {
+      clientKey: 'quest-story:foreign',
+      story: storyContent,
+    });
+    const card = await learner.mutation(api.alphabet.create, { card: kanji });
+    const paper = await learner.mutation(api.jlpt.create, {
+      paper: {
+        title: 'Prova da seleção mista',
+        level: 'N5',
+        questions: [
+          {
+            id: 'water',
+            skill: 'vocabulary',
+            kind: 'kanji_reading',
+            prompt: '水',
+            choices: ['みず', 'ひ', 'やま', 'つき'],
+            correctChoice: 0,
+            explanation: 'Água',
+          },
+        ],
+      },
+    });
+    const client = await connect(
+      backend,
+      await accessToken({
+        scope: `openid ${QUESTS_READ_SCOPE} ${QUESTS_WRITE_SCOPE}`,
+      }),
+    );
+    const reader = await connect(
+      backend,
+      await accessToken({ scope: `openid ${STORIES_READ_SCOPE}` }),
+    );
+    try {
+      const discovered = storyListResultSchema.parse(
+        (await reader.callTool({ name: 'list_stories', arguments: {} }))
+          .structuredContent,
+      );
+      expect(new Set(discovered.items.map((story) => story.id))).toEqual(
+        new Set([first.id, second.id]),
+      );
+      const tools = (await client.listTools()).tools;
+      expect(tools.map((tool) => tool.name)).toEqual(toolNames);
+      expect(tools.find((tool) => tool.name === 'create_quest')?._meta).toEqual(
+        {
+          securitySchemes: [
+            {
+              type: 'oauth2',
+              scopes: [QUESTS_READ_SCOPE, QUESTS_WRITE_SCOPE],
+            },
+          ],
+        },
+      );
+      const withoutStoryConsent = await endpoint(backend)(
+        request(
+          await accessToken({
+            scope: `openid ${QUESTS_READ_SCOPE} ${QUESTS_WRITE_SCOPE}`,
+          }),
+          {
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'tools/call',
+            params: { name: 'get_story', arguments: { id: first.id } },
+          },
+        ),
+      );
+      expect(withoutStoryConsent.status).toBe(403);
+      expect(withoutStoryConsent.headers.get('WWW-Authenticate')).toContain(
+        STORIES_READ_SCOPE,
+      );
+      const quest = {
+        ...plannedQuest([], 'quest-story:only'),
+        storyIds: [second.id, first.id],
+      };
+      const createdResult = await client.callTool({
+        name: 'create_quest',
+        arguments: { quest },
+      });
+      const created = questResultSchema.parse(
+        createdResult.structuredContent,
+      ).quest;
+      expect(created).toMatchObject({
+        cardIds: [],
+        paperIds: [],
+        storyIds: [second.id, first.id],
+        completedStoryIds: [],
+      });
+      expect(
+        (await client.callTool({ name: 'create_quest', arguments: { quest } }))
+          .structuredContent,
+      ).toEqual(createdResult.structuredContent);
+      const mixed = questResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'create_quest',
+            arguments: {
+              quest: {
+                ...plannedQuest([card._id], 'quest-story:mixed'),
+                paperIds: [paper._id],
+                storyIds: [first.id],
+              },
+            },
+          })
+        ).structuredContent,
+      ).quest;
+      expect(mixed).toMatchObject({
+        cardIds: [card._id],
+        paperIds: [paper._id],
+        storyIds: [first.id],
+        completedStoryIds: [],
+      });
+      const storyId = await backend.run(async (ctx) =>
+        ctx.db.normalizeId('stories', first.id),
+      );
+      if (!storyId) throw new Error('Expected a story ID');
+      await learner.mutation(api.stories.answer, {
+        id: storyId,
+        questionId: 'q1',
+        optionId: 'letter',
+      });
+      await learner.mutation(api.stories.complete, { id: storyId });
+      const saved = questResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'get_quest',
+            arguments: { id: created.id },
+          })
+        ).structuredContent,
+      ).quest;
+      expect(saved.completedStoryIds).toEqual([]);
+      expect(saved.completedAt).toBeUndefined();
+      const listed = questListResultSchema.parse(
+        (await client.callTool({ name: 'list_quests', arguments: {} }))
+          .structuredContent,
+      );
+      expect(listed.items.find((item) => item.id === created.id)).toEqual(
+        saved,
+      );
+
+      await learner.mutation(api.stories.setArchived, {
+        id: storyId,
+        archived: true,
+      });
+      for (const selection of [
+        { storyIds: [] },
+        { storyIds: [second.id, second.id] },
+        { storyIds: [foreign.id] },
+        { storyIds: [first.id] },
+        { storyIds: [card._id] },
+        { storyIds: [second.id], completedStoryIds: [second.id] },
+      ]) {
+        expect(
+          (
+            await client.callTool({
+              name: 'create_quest',
+              arguments: {
+                quest: {
+                  ...plannedQuest([], 'quest-story:invalid'),
+                  ...selection,
+                },
+              },
+            })
+          ).isError,
+        ).toBe(true);
+      }
+      expect(
+        await backend.run((ctx) => ctx.db.query('quests').collect()),
+      ).toHaveLength(2);
+    } finally {
+      await client.close();
+      await reader.close();
+    }
+  });
+
+  test('new areas require their own scopes before accessing gateways, while old scopes keep discovery', async () => {
+    const backend = createTestBackend();
+    const gatewayFor = vi.fn(() => {
+      throw new Error('must not access data');
+    });
+    const cases = [
+      {
+        scope: `openid ${READ_SCOPE} ${WRITE_SCOPE}`,
+        name: 'list_quests',
+        required: QUESTS_READ_SCOPE,
+      },
+      {
+        scope: `openid ${QUESTS_READ_SCOPE}`,
+        name: 'create_quest',
+        required: QUESTS_WRITE_SCOPE,
+      },
+      {
+        scope: `openid ${QUESTS_WRITE_SCOPE}`,
+        name: 'create_quest',
+        required: QUESTS_READ_SCOPE,
+      },
+      {
+        scope: `openid ${READ_SCOPE}`,
+        name: 'get_study_progress',
+        required: STUDY_READ_SCOPE,
+      },
+      {
+        scope: `openid ${READ_SCOPE}`,
+        name: 'get_study_cards',
+        required: STUDY_READ_SCOPE,
+      },
+      {
+        scope: `openid ${STUDY_READ_SCOPE}`,
+        name: 'get_shiken_history',
+        required: SHIKEN_READ_SCOPE,
+      },
+    ];
+    for (const entry of cases) {
+      const response = await handleMcpHttp(
+        request(await accessToken({ scope: entry.scope }), {
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'tools/call',
+          params: { name: entry.name, arguments: {} },
+        }),
+        gatewayFor,
+        config,
+      );
+      expect(response.status).toBe(403);
+      expect(response.headers.get('WWW-Authenticate')).toContain(
+        entry.required,
+      );
+    }
+    expect(gatewayFor).not.toHaveBeenCalled();
+    for (const scope of [
+      QUESTS_READ_SCOPE,
+      STUDY_READ_SCOPE,
+      SHIKEN_READ_SCOPE,
+    ]) {
+      const client = await connect(
+        backend,
+        await accessToken({ scope: `openid ${scope}` }),
+      );
+      try {
+        expect(
+          (await client.listTools()).tools.map((tool) => tool.name),
+        ).toEqual(toolNames);
+      } finally {
+        await client.close();
+      }
+    }
+    expect(resourceMetadata(config).scopes_supported).toEqual(
+      expect.arrayContaining([
+        QUESTS_READ_SCOPE,
+        QUESTS_WRITE_SCOPE,
+        STUDY_READ_SCOPE,
+        SHIKEN_READ_SCOPE,
+      ]),
+    );
+  });
+
+  test('creates occurrences idempotently, paginates and cancels only the authenticated owner quests', async () => {
+    const backend = createTestBackend();
+    const learner = backend.withIdentity(learnerIdentity);
+    const otherLearner = backend.withIdentity({
+      ...learnerIdentity,
+      subject: 'user_other_quest_owner',
+      tokenIdentifier: `${issuer}|user_other_quest_owner`,
+    });
+    await learner.mutation(api.users.ensureCurrentUser, {});
+    await otherLearner.mutation(api.users.ensureCurrentUser, {});
+    const cards = await Promise.all([
+      learner.mutation(api.alphabet.create, { card: kanji }),
+      learner.mutation(api.vocabulary.create, { card: vocabulary }),
+      learner.mutation(api.grammar.create, { card: grammar }),
+    ]);
+    const otherCard = await otherLearner.mutation(api.alphabet.create, {
+      card: kanji,
+    });
+    const scope = `openid ${QUESTS_READ_SCOPE} ${QUESTS_WRITE_SCOPE}`;
+    const client = await connect(backend, await accessToken({ scope }));
+    const other = await connect(
+      backend,
+      await accessToken({ scope, sub: 'user_other_quest_owner' }),
+    );
+    try {
+      const quest = plannedQuest(cards.map((card) => card._id));
+      const first = await client.callTool({
+        name: 'create_quest',
+        arguments: { quest },
+      });
+      expect(first.isError).not.toBe(true);
+      const created = questResultSchema.parse(first.structuredContent).quest;
+      expect(new Set(created.cardIds)).toEqual(new Set(quest.cardIds));
+      expect(created.paperIds).toEqual([]);
+      expect(created.completedCardIds).toEqual([]);
+      expect(created.completedPaperIds).toEqual([]);
+      expect(
+        (
+          await client.callTool({
+            name: 'create_quest',
+            arguments: {
+              quest: {
+                ...quest,
+                clientKey: 'invalid-other-target',
+                cardIds: [otherCard._id],
+              },
+            },
+          })
+        ).isError,
+      ).toBe(true);
+      const repeat = await client.callTool({
+        name: 'create_quest',
+        arguments: { quest },
+      });
+      expect(repeat.structuredContent).toEqual(first.structuredContent);
+      const conflict = await client.callTool({
+        name: 'create_quest',
+        arguments: { quest: { ...quest, title: 'Outro conteúdo' } },
+      });
+      expect(conflict.isError).toBe(true);
+      expect(JSON.stringify(conflict.content)).toContain('CONFLICT');
+      const ownOther = await other.callTool({
+        name: 'create_quest',
+        arguments: { quest: { ...quest, cardIds: [otherCard._id] } },
+      });
+      expect(
+        questResultSchema.parse(ownOther.structuredContent).quest.id,
+      ).not.toBe(created.id);
+      expect(
+        (
+          await other.callTool({
+            name: 'get_quest',
+            arguments: { id: created.id },
+          })
+        ).isError,
+      ).toBe(true);
+      expect(
+        (
+          await other.callTool({
+            name: 'cancel_quest',
+            arguments: { id: created.id },
+          })
+        ).isError,
+      ).toBe(true);
+      await client.callTool({
+        name: 'create_quest',
+        arguments: {
+          quest: plannedQuest(
+            cards.map((card) => card._id),
+            'weekly-2026-10-17',
+          ),
+        },
+      });
+      const page1 = questListResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'list_quests',
+            arguments: { limit: 1 },
+          })
+        ).structuredContent,
+      );
+      expect(page1.items).toHaveLength(1);
+      expect(page1.isDone).toBe(false);
+      const page2 = questListResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'list_quests',
+            arguments: { limit: 1, cursor: page1.cursor },
+          })
+        ).structuredContent,
+      );
+      expect(page2.items).toHaveLength(1);
+      expect(page2.items[0].id).not.toBe(page1.items[0].id);
+      const cancelled = questResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'cancel_quest',
+            arguments: { id: created.id },
+          })
+        ).structuredContent,
+      ).quest;
+      expect(cancelled.cancelledAt).toBeTypeOf('number');
+      expect(
+        (
+          await client.callTool({
+            name: 'cancel_quest',
+            arguments: { id: created.id },
+          })
+        ).structuredContent,
+      ).toEqual({ quest: cancelled });
+      const cancelledPage = questListResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'list_quests',
+            arguments: { status: 'cancelled' },
+          })
+        ).structuredContent,
+      );
+      expect(cancelledPage.items.map((item) => item.id)).toEqual([created.id]);
+      expect(JSON.stringify(cancelledPage)).not.toContain('tokenIdentifier');
+      expect(JSON.stringify(cancelledPage)).not.toContain('ownerId');
+    } finally {
+      await client.close();
+      await other.close();
+    }
+  });
+
+  test('rejects forged identities, completion, generic objectives, invalid windows and duplicate targets', async () => {
+    const backend = createTestBackend();
+    const learner = backend.withIdentity(learnerIdentity);
+    await learner.mutation(api.users.ensureCurrentUser, {});
+    const card = await learner.mutation(api.alphabet.create, { card: kanji });
+    const client = await connect(
+      backend,
+      await accessToken({
+        scope: `openid ${QUESTS_READ_SCOPE} ${QUESTS_WRITE_SCOPE}`,
+      }),
+    );
+    try {
+      const quest = plannedQuest([card._id]);
+      const inputs = [
+        { quest, ownerId: 'someone-else' },
+        { quest, tokenIdentifier: 'someone-else' },
+        {
+          quest: { ...quest, completedCardIds: [card._id] },
+        },
+        { quest: { ...quest, dueAt: quest.startsAt } },
+        { quest: { ...quest, dueAt: quest.startsAt + 91 * 86_400_000 } },
+        { quest: { ...quest, timeZone: 'Invalid/Somewhere' } },
+        {
+          quest: {
+            ...quest,
+            cardIds: [card._id, card._id],
+          },
+        },
+        {
+          quest: {
+            ...quest,
+            objectives: [{ id: 'any', kind: 'study', quantity: 20 }],
+          },
+        },
+        { quest: { ...quest, description: 'Texto não permitido' } },
+        { quest: { ...quest, quantity: 10 } },
+        { quest: { ...quest, cardIds: [] } },
+        { quest: { ...quest, cardIds: undefined, paperIds: [] } },
+      ];
+      for (const args of inputs) {
+        expect(
+          (await client.callTool({ name: 'create_quest', arguments: args }))
+            .isError,
+        ).toBe(true);
+      }
+      expect(
+        await backend.run((ctx) => ctx.db.query('quests').take(1)),
+      ).toEqual([]);
+    } finally {
+      await client.close();
+    }
+  });
+
+  test('reports exact personal lifetime progress by category and level with bounded weak cards', async () => {
+    const backend = createTestBackend();
+    const learner = backend.withIdentity(learnerIdentity);
+    await learner.mutation(api.users.ensureCurrentUser, {});
+    const alphabet = await learner.mutation(api.alphabet.create, {
+      card: kanji,
+    });
+    const word = await learner.mutation(api.vocabulary.create, {
+      card: vocabulary,
+    });
+    await learner.mutation(api.grammar.create, { card: grammar });
+    await backend.run(async (ctx) => {
+      await ctx.db.insert('studyStats', {
+        ownerId: alphabet.ownerId,
+        cardId: alphabet._id,
+        correct: 1,
+        partial: 1,
+        incorrect: 2,
+        attempts: 4,
+        lastReviewedAt: 1000,
+      });
+      await ctx.db.insert('studyStats', {
+        ownerId: word.ownerId,
+        cardId: word._id,
+        correct: 3,
+        partial: 0,
+        incorrect: 0,
+        attempts: 3,
+        lastReviewedAt: 2000,
+      });
+      const other = await ctx.db.insert('users', {
+        tokenIdentifier: `${issuer}|user_other_progress`,
+      });
+      await ctx.db.insert('studyStats', {
+        ownerId: other,
+        cardId: alphabet._id,
+        correct: 100,
+        partial: 0,
+        incorrect: 0,
+        attempts: 100,
+        lastReviewedAt: 3000,
+      });
+    });
+    const client = await connect(
+      backend,
+      await accessToken({ scope: `openid ${STUDY_READ_SCOPE}` }),
+    );
+    try {
+      const result = studyProgressResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'get_study_progress',
+            arguments: { weakLimit: 1 },
+          })
+        ).structuredContent,
+      );
+      expect(result.overview).toMatchObject({
+        totalCards: 3,
+        studiedCards: 2,
+        neverStudiedCards: 1,
+        correct: 4,
+        partial: 1,
+        incorrect: 2,
+        attempts: 7,
+      });
+      expect(result.weakCards).toHaveLength(1);
+      expect(result.weakCards[0]).toMatchObject({
+        id: alphabet._id,
+        weightedAccuracy: 0.375,
+      });
+      expect(result.hasMoreWeakCards).toBe(true);
+      expect(result.truncated).toBe(false);
+      expect(
+        result.byCategory.find((row) => row.category === 'grammar')?.overview,
+      ).toMatchObject({ attempts: 0, weightedAccuracy: null });
+      expect(
+        result.byLevel.find((row) => row.level === 'N5')?.overview.totalCards,
+      ).toBe(3);
+      const filtered = studyProgressResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'get_study_progress',
+            arguments: { category: 'vocabulary', level: 'N5' },
+          })
+        ).structuredContent,
+      );
+      expect(filtered.overview).toMatchObject({
+        totalCards: 1,
+        correct: 3,
+        attempts: 3,
+      });
+      const cards = studyCardsResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'get_study_cards',
+            arguments: { category: 'alphabet' },
+          })
+        ).structuredContent,
+      );
+      expect(cards.items).toHaveLength(1);
+      expect(cards.items[0]).toMatchObject({
+        id: alphabet._id,
+        front: alphabet.front,
+        back: alphabet.back,
+        stats: {
+          correct: 1,
+          partial: 1,
+          incorrect: 2,
+          attempts: 4,
+          weightedAccuracy: 0.375,
+          lastReviewedAt: 1000,
+        },
+      });
+      for (const [category, attempts] of [
+        ['vocabulary', 3],
+        ['grammar', 0],
+      ] as const) {
+        const page = studyCardsResultSchema.parse(
+          (
+            await client.callTool({
+              name: 'get_study_cards',
+              arguments: { category },
+            })
+          ).structuredContent,
+        );
+        expect(page.items).toHaveLength(1);
+        expect(page.items[0].stats.attempts).toBe(attempts);
+      }
+      const other = await connect(
+        backend,
+        await accessToken({
+          scope: `openid ${STUDY_READ_SCOPE}`,
+          sub: 'user_other_progress',
+        }),
+      );
+      try {
+        const page = studyCardsResultSchema.parse(
+          (
+            await other.callTool({
+              name: 'get_study_cards',
+              arguments: { category: 'alphabet' },
+            })
+          ).structuredContent,
+        );
+        expect(page.items).toEqual([]);
+      } finally {
+        await other.close();
+      }
+      expect(
+        (
+          await client.callTool({
+            name: 'get_study_progress',
+            arguments: { ownerId: alphabet.ownerId },
+          })
+        ).isError,
+      ).toBe(true);
+    } finally {
+      await client.close();
+    }
+  });
+
+  test('paginates statistics beyond summary bounds and creates an exact selection larger than 100 cards', async () => {
+    const backend = createTestBackend();
+    await backend.run(async (ctx) => {
+      const ownerId = await ctx.db.insert('users', {
+        tokenIdentifier: learnerIdentity.tokenIdentifier,
+      });
+      for (let index = 0; index < 1001; index++) {
+        await ctx.db.insert('alphabetCards', {
+          ...kanji,
+          front: kanji.symbol,
+          back: 'dia',
+          sortKey: String(index),
+          symbol: `symbol-${index}`,
+          classifications: [
+            { scheme: 'jlpt', level: index === 0 ? 'N4' : 'N5' },
+          ],
+          ownerId,
+          archived: false,
+          contentVersion: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        });
+      }
+    });
+    const client = await connect(
+      backend,
+      await accessToken({
+        scope: `openid ${STUDY_READ_SCOPE} ${QUESTS_READ_SCOPE} ${QUESTS_WRITE_SCOPE}`,
+      }),
+    );
+    try {
+      const result = await client.callTool({
+        name: 'get_study_progress',
+        arguments: { category: 'alphabet' },
+      });
+      expect(result.isError).toBe(true);
+      expect(JSON.stringify(result.content)).toContain('1.000');
+      expect(result.structuredContent).toBeUndefined();
+      const filtered = studyCardsResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'get_study_cards',
+            arguments: { category: 'alphabet', level: 'N5', limit: 1 },
+          })
+        ).structuredContent,
+      );
+      expect(filtered.items).toEqual([]);
+      expect(filtered.isDone).toBe(false);
+      expect(filtered.cursor).toBeTypeOf('string');
+      const ids: string[] = [];
+      let cursor: string | null = null;
+      for (;;) {
+        const page = studyCardsResultSchema.parse(
+          (
+            await client.callTool({
+              name: 'get_study_cards',
+              arguments: { category: 'alphabet', limit: 100, cursor },
+            })
+          ).structuredContent,
+        );
+        expect(page.items.length).toBeLessThanOrEqual(100);
+        expect(page.items[0]?.stats).toMatchObject({
+          attempts: 0,
+          integralAccuracy: null,
+          weightedAccuracy: null,
+          lastReviewedAt: null,
+        });
+        ids.push(...page.items.map((card) => card.id));
+        if (page.isDone) break;
+        cursor = page.cursor;
+      }
+      expect(ids).toHaveLength(1001);
+      expect(new Set(ids).size).toBe(1001);
+      const selected = ids.slice(0, 101);
+      const created = questResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'create_quest',
+            arguments: { quest: plannedQuest(selected) },
+          })
+        ).structuredContent,
+      ).quest;
+      expect(new Set(created.cardIds)).toEqual(new Set(selected));
+      expect(created.completedCardIds).toEqual([]);
+      expect(
+        (
+          await client.callTool({
+            name: 'get_study_cards',
+            arguments: { category: 'alphabet', ownerId: 'forged' },
+          })
+        ).isError,
+      ).toBe(true);
+    } finally {
+      await client.close();
+    }
+  });
+
+  test('discovers owner Shiken IDs and traverses filtered result history including empty pages', async () => {
+    const backend = createTestBackend();
+    const learner = backend.withIdentity(learnerIdentity);
+    await learner.mutation(api.users.ensureCurrentUser, {});
+    const paper = await learner.mutation(api.jlpt.create, {
+      paper: {
+        title: 'Treino N5',
+        level: 'N5',
+        questions: [
+          {
+            id: 'water',
+            skill: 'vocabulary',
+            kind: 'kanji_reading',
+            prompt: '水',
+            choices: ['みず', 'ひ', 'やま', 'つき'],
+            correctChoice: 0,
+            explanation: 'Água',
+          },
+        ],
+      },
+    });
+    await backend.run(async (ctx) => {
+      const snapshot = {
+        title: paper.title,
+        level: paper.level,
+        questions: paper.questions,
+        contentVersion: paper.contentVersion,
+      };
+      for (const [offset, level] of ['N5', 'N5', 'N4'].entries()) {
+        await ctx.db.insert('jlptAttempts', {
+          ownerId: paper.ownerId,
+          paperId: paper._id,
+          snapshot: { ...snapshot, level: level as 'N5' | 'N4' },
+          status: 'completed',
+          startedAt: 1000 + offset,
+          completedAt: 2000 + offset,
+          blockIndex: 0,
+          blockStartedAt: 1000,
+          blockDeadlineAt: 3000,
+          lastActionAt: 2000,
+          revision: 1,
+          answers: [
+            {
+              questionId: 'water',
+              choice: offset === 0 ? 0 : 1,
+              flagged: false,
+            },
+          ],
+        });
+      }
+      const other = await ctx.db.insert('users', {
+        tokenIdentifier: `${issuer}|user_other_shiken`,
+      });
+      await ctx.db.insert('jlptPapers', {
+        ...snapshot,
+        ownerId: other,
+        archived: false,
+        createdAt: 1,
+        updatedAt: 1,
+      });
+    });
+    const client = await connect(
+      backend,
+      await accessToken({
+        scope: `openid ${SHIKEN_READ_SCOPE} ${QUESTS_READ_SCOPE} ${QUESTS_WRITE_SCOPE}`,
+      }),
+    );
+    const other = await connect(
+      backend,
+      await accessToken({
+        scope: `openid ${SHIKEN_READ_SCOPE}`,
+        sub: 'user_other_shiken',
+      }),
+    );
+    try {
+      const found = shikenSearchResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'search_shiken_papers',
+            arguments: { level: 'N5' },
+          })
+        ).structuredContent,
+      );
+      expect(found.items.map((item) => item.id)).toEqual([paper._id]);
+      expect(found.items[0].questionCount).toBe(1);
+      expect(JSON.stringify(found)).not.toContain('correctChoice');
+      const selectedPaperQuest = questResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'create_quest',
+            arguments: {
+              quest: { ...plannedQuest([]), paperIds: [paper._id] },
+            },
+          })
+        ).structuredContent,
+      ).quest;
+      expect(selectedPaperQuest.cardIds).toEqual([]);
+      expect(selectedPaperQuest.paperIds).toEqual([paper._id]);
+      expect(selectedPaperQuest.completedPaperIds).toEqual([]);
+      const first = shikenHistoryResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'get_shiken_history',
+            arguments: { limit: 1, level: 'N5', status: 'completed' },
+          })
+        ).structuredContent,
+      );
+      expect(first.items).toEqual([]);
+      expect(first.isDone).toBe(false);
+      expect(first.scanned).toBe(1);
+      let cursor = first.cursor;
+      const items = [];
+      do {
+        const page = shikenHistoryResultSchema.parse(
+          (
+            await client.callTool({
+              name: 'get_shiken_history',
+              arguments: { limit: 1, cursor, level: 'N5', status: 'completed' },
+            })
+          ).structuredContent,
+        );
+        expect(page.summaryScope).toBe('this_page_only');
+        items.push(...page.items);
+        cursor = page.cursor;
+      } while (cursor);
+      expect(items).toHaveLength(2);
+      expect(items.reduce((sum, item) => sum + item.result!.correct, 0)).toBe(
+        1,
+      );
+      expect(
+        items[0].result?.bySkill.find((row) => row.skill === 'vocabulary')
+          ?.total,
+      ).toBe(1);
+      expect(
+        (
+          await other.callTool({
+            name: 'get_shiken_paper',
+            arguments: { id: paper._id },
+          })
+        ).isError,
+      ).toBe(true);
+      expect(
+        (
+          await other.callTool({
+            name: 'get_shiken_history',
+            arguments: { paperId: paper._id },
+          })
+        ).isError,
+      ).toBe(true);
+      const otherHistory = shikenHistoryResultSchema.parse(
+        (await other.callTool({ name: 'get_shiken_history', arguments: {} }))
+          .structuredContent,
+      );
+      expect(otherHistory.items).toEqual([]);
+    } finally {
+      await client.close();
+      await other.close();
+    }
+  });
+});
+
+const storyContent: StoryContent = {
+  title: '山で見つけた手紙',
+  level: 'N4',
+  paragraphs: [
+    {
+      id: 'p1',
+      segments: [
+        { text: '山', reading: 'やま' },
+        { text: 'で' },
+        { text: '手紙', reading: 'てがみ' },
+        { text: 'を見つけました。' },
+      ],
+      translation: 'Encontrei uma carta na montanha.',
+    },
+  ],
+  questions: [
+    {
+      id: 'q1',
+      prompt: '何を見つけましたか。',
+      options: [
+        { id: 'letter', text: '手紙' },
+        { id: 'key', text: '鍵' },
+      ],
+      correctOptionId: 'letter',
+      explanation: '山で手紙を見つけました。',
+    },
+  ],
+};
+
+const authoredShikenPaper: PaperInput = {
+  title: 'Simulado original de teste',
+  level: 'N5',
+  questions: [
+    {
+      id: 'vocabulary',
+      skill: 'vocabulary',
+      kind: 'kanji_reading',
+      prompt: '水',
+      choices: ['みず', 'ひ', 'やま', 'つき'],
+      correctChoice: 0,
+      explanation: '水 lê-se みず.',
+    },
+    {
+      id: 'grammar',
+      skill: 'grammar',
+      kind: 'grammar_form',
+      prompt: '学生（　）です。',
+      choices: ['なの', 'に', 'を', 'が'],
+      correctChoice: 0,
+      explanation: 'Conteúdo de teste editorial.',
+    },
+    {
+      id: 'reading',
+      skill: 'reading',
+      kind: 'short_passage',
+      prompt: '何を飲みますか。',
+      passage: '水を飲みます。',
+      choices: ['水', 'お茶', '牛乳', 'コーヒー'],
+      correctChoice: 0,
+      explanation: 'O texto menciona água.',
+    },
+    {
+      id: 'listening',
+      skill: 'listening',
+      kind: 'quick_response',
+      prompt: '音声を聞いてください。',
+      choices: ['はい', 'いいえ', 'ありがとう'],
+      correctChoice: 0,
+      explanation: 'Resposta editorial de teste.',
+      audioUrl: 'https://example.com/test-listening.mp3',
+    },
+  ],
+};
+
+describe('MCP Shiken authorship', () => {
+  const scope = `openid ${SHIKEN_READ_SCOPE} ${SHIKEN_WRITE_SCOPE}`;
+
+  test('discovers authorship separately and refuses answer keys or uploads without read and write consent before accessing data', async () => {
+    const backend = createTestBackend();
+    const gatewayFor = vi.fn(() => {
+      throw new Error('Unauthorized authorship must not reach data');
+    });
+    for (const name of [
+      'create_shiken_paper',
+      'get_shiken_paper_content',
+      'prepare_shiken_media_upload',
+    ]) {
+      for (const [granted, required] of [
+        [SHIKEN_READ_SCOPE, SHIKEN_WRITE_SCOPE],
+        [SHIKEN_WRITE_SCOPE, SHIKEN_READ_SCOPE],
+      ]) {
+        const response = await handleMcpHttp(
+          request(await accessToken({ scope: `openid ${granted}` }), {
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'tools/call',
+            params: { name, arguments: {} },
+          }),
+          gatewayFor,
+          config,
+        );
+        expect(response.status).toBe(403);
+        expect(response.headers.get('WWW-Authenticate')).toContain(required);
+      }
+    }
+    const missingRead = await handleMcpHttp(
+      request(await accessToken({ scope: `openid ${STUDY_READ_SCOPE}` }), {
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: { name: 'get_shiken_media', arguments: {} },
+      }),
+      gatewayFor,
+      config,
+    );
+    expect(missingRead.status).toBe(403);
+    expect(gatewayFor).not.toHaveBeenCalled();
+    const client = await connect(
+      backend,
+      await accessToken({ scope: `openid ${SHIKEN_READ_SCOPE}` }),
+    );
+    try {
+      const tools = (await client.listTools()).tools;
+      expect(tools.map((tool) => tool.name)).toEqual(toolNames);
+      expect(tools).toHaveLength(33);
+      for (const name of [
+        'create_shiken_paper',
+        'get_shiken_paper_content',
+        'prepare_shiken_media_upload',
+      ]) {
+        expect(tools.find((tool) => tool.name === name)?._meta).toMatchObject({
+          securitySchemes: [
+            { type: 'oauth2', scopes: [SHIKEN_READ_SCOPE, SHIKEN_WRITE_SCOPE] },
+          ],
+        });
+      }
+      expect(
+        tools.find((tool) => tool.name === 'get_shiken_paper_content')
+          ?.annotations?.readOnlyHint,
+      ).toBe(true);
+      expect(
+        tools.find((tool) => tool.name === 'create_shiken_paper')?.annotations
+          ?.idempotentHint,
+      ).toBe(true);
+      expect(resourceMetadata(config).scopes_supported).toContain(
+        SHIKEN_WRITE_SCOPE,
+      );
+    } finally {
+      await client.close();
+    }
+  });
+
+  test('publishes once, protects editorial pages by owner and version, and preserves the original receipt after edits and archival', async () => {
+    const backend = createTestBackend();
+    const client = await connect(backend, await accessToken({ scope }));
+    const other = await connect(
+      backend,
+      await accessToken({ scope, sub: 'user_other_shiken_author' }),
+    );
+    const args = {
+      clientKey: 'shiken-daily:original',
+      paper: authoredShikenPaper,
+    };
+    try {
+      const created = shikenPaperResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'create_shiken_paper',
+            arguments: args,
+          })
+        ).structuredContent,
+      ).paper;
+      expect(created.questionCount).toBe(4);
+      const repeated = shikenPaperResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'create_shiken_paper',
+            arguments: args,
+          })
+        ).structuredContent,
+      ).paper;
+      expect(repeated).toEqual(created);
+      const first = shikenContentResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'get_shiken_paper_content',
+            arguments: { id: created.id, questionLimit: 2 },
+          })
+        ).structuredContent,
+      );
+      expect(first.questions).toEqual(
+        authoredShikenPaper.questions.slice(0, 2),
+      );
+      expect(first.nextQuestionOffset).toBe(2);
+      const second = shikenContentResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'get_shiken_paper_content',
+            arguments: {
+              id: created.id,
+              questionOffset: 2,
+              expectedContentVersion: first.contentVersion,
+            },
+          })
+        ).structuredContent,
+      );
+      expect(second.questions).toEqual(authoredShikenPaper.questions.slice(2));
+      expect(second.nextQuestionOffset).toBeNull();
+      expect(
+        (
+          await client.callTool({
+            name: 'get_shiken_paper_content',
+            arguments: { id: created.id, questionOffset: 2 },
+          })
+        ).isError,
+      ).toBe(true);
+      const foreign = await other.callTool({
+        name: 'get_shiken_paper_content',
+        arguments: { id: created.id },
+      });
+      expect(foreign.isError).toBe(true);
+      expect(JSON.stringify(foreign)).not.toContain(authoredShikenPaper.title);
+      const metadata = await client.callTool({
+        name: 'get_shiken_paper',
+        arguments: { id: created.id },
+      });
+      expect(JSON.stringify(metadata)).not.toContain('correctChoice');
+      expect(JSON.stringify(metadata)).not.toContain('questions');
+
+      const id = await backend.run(async (ctx) =>
+        ctx.db.normalizeId('jlptPapers', created.id),
+      );
+      if (!id) throw new Error('Missing created paper');
+      const learner = backend.withIdentity(learnerIdentity);
+      await learner.mutation(api.jlpt.update, {
+        id,
+        patch: { title: 'Edição posterior' },
+        expectedContentVersion: first.contentVersion,
+      });
+      await learner.mutation(api.jlpt.archive, { id });
+      const replay = shikenPaperResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'create_shiken_paper',
+            arguments: args,
+          })
+        ).structuredContent,
+      ).paper;
+      expect(replay).toMatchObject({
+        id: created.id,
+        title: 'Edição posterior',
+        archived: true,
+        contentVersion: 2,
+      });
+      const stale = await client.callTool({
+        name: 'get_shiken_paper_content',
+        arguments: {
+          id: created.id,
+          questionOffset: 2,
+          expectedContentVersion: first.contentVersion,
+        },
+      });
+      expect(stale.isError).toBe(true);
+      expect(JSON.stringify(stale)).toContain('CONFLICT');
+      const conflict = await client.callTool({
+        name: 'create_shiken_paper',
+        arguments: {
+          ...args,
+          paper: { ...authoredShikenPaper, title: 'Outro conteúdo' },
+        },
+      });
+      expect(conflict.isError).toBe(true);
+      expect(JSON.stringify(conflict)).toContain('CONFLICT');
+      for (const invalid of [
+        { ...args, clientKey: 'invalid-owner', ownerId: 'forged' },
+        {
+          ...args,
+          clientKey: 'invalid-questions',
+          paper: {
+            ...authoredShikenPaper,
+            questions: authoredShikenPaper.questions.slice(0, 3),
+          },
+        },
+        {
+          ...args,
+          clientKey: 'invalid-answer',
+          paper: {
+            ...authoredShikenPaper,
+            questions: authoredShikenPaper.questions.map((question) => ({
+              ...question,
+              correctChoice: 3,
+            })),
+          },
+        },
+      ])
+        expect(
+          (
+            await client.callTool({
+              name: 'create_shiken_paper',
+              arguments: invalid,
+            })
+          ).isError,
+        ).toBe(true);
+      expect(
+        await backend.run((ctx) => ctx.db.query('jlptPapers').collect()),
+      ).toHaveLength(1);
+      const independent = shikenPaperResultSchema.parse(
+        (await other.callTool({ name: 'create_shiken_paper', arguments: args }))
+          .structuredContent,
+      ).paper;
+      expect(independent.id).not.toBe(created.id);
+    } finally {
+      await client.close();
+      await other.close();
+    }
+  });
+
+  test('accepts a valid paper above the former transport limit and returns complete large questions without mixing pages', async () => {
+    const backend = createTestBackend();
+    const client = await connect(backend, await accessToken({ scope }));
+    const questions = [
+      ...authoredShikenPaper.questions,
+      ...authoredShikenPaper.questions.slice(0, 3),
+    ].map((question, index) => ({
+      ...question,
+      id: `large-${index}`,
+      prompt: 'a'.repeat(12000),
+      passage: 'b'.repeat(16000),
+      explanation: 'c'.repeat(12000),
+    }));
+    const paper = { ...authoredShikenPaper, questions };
+    expect(
+      new TextEncoder().encode(JSON.stringify(paper)).length,
+    ).toBeGreaterThan(256 * 1024);
+    try {
+      const created = shikenPaperResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'create_shiken_paper',
+            arguments: { clientKey: 'large-paper:original', paper },
+          })
+        ).structuredContent,
+      ).paper;
+      const content = shikenContentResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'get_shiken_paper_content',
+            arguments: { id: created.id },
+          })
+        ).structuredContent,
+      );
+      expect(content.questions).toEqual([questions[0]]);
+      expect(content.nextQuestionOffset).toBe(1);
+      const oversized = {
+        ...paper,
+        questions: [
+          ...questions,
+          ...questions
+            .slice(0, 3)
+            .map((question, index) => ({ ...question, id: `extra-${index}` })),
+        ],
+      };
+      const rejected = await client.callTool({
+        name: 'create_shiken_paper',
+        arguments: { clientKey: 'oversized-paper:original', paper: oversized },
+      });
+      expect(rejected.isError).toBe(true);
+      expect(
+        await backend.run((ctx) => ctx.db.query('jlptPapers').collect()),
+      ).toHaveLength(1);
+    } finally {
+      await client.close();
+    }
+  });
+
+  test('reserves owner-bound binary uploads idempotently and exposes status without leaking upload capabilities through read queries', async () => {
+    vi.stubEnv('CONVEX_SITE_URL', new URL(resource).origin);
+    const backend = createTestBackend();
+    const client = await connect(backend, await accessToken({ scope }));
+    const reader = await connect(
+      backend,
+      await accessToken({ scope: `openid ${SHIKEN_READ_SCOPE}` }),
+    );
+    const other = await connect(
+      backend,
+      await accessToken({ scope, sub: 'user_other_media_owner' }),
+    );
+    const args = {
+      clientKey: 'audio-shiken:original',
+      contentType: 'audio/mpeg',
+      byteLength: 128,
+      sha256: 'a'.repeat(64),
+    };
+    try {
+      const prepared = shikenMediaPrepareResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'prepare_shiken_media_upload',
+            arguments: args,
+          })
+        ).structuredContent,
+      );
+      expect(prepared).toMatchObject({
+        ...args,
+        status: 'pending',
+        url: null,
+        upload: { method: 'POST', contentType: 'audio/mpeg' },
+      });
+      expect(new URL(prepared.upload!.url).pathname).toMatch(
+        /^\/shiken-media-upload\/[a-f0-9]{64}$/,
+      );
+      const replay = shikenMediaPrepareResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'prepare_shiken_media_upload',
+            arguments: args,
+          })
+        ).structuredContent,
+      );
+      expect(replay.id).toBe(prepared.id);
+      const read = await reader.callTool({
+        name: 'get_shiken_media',
+        arguments: { id: prepared.id },
+      });
+      expect(
+        shikenMediaResultSchema.parse(read.structuredContent).media,
+      ).toMatchObject({ id: prepared.id, status: 'pending', url: null });
+      expect(JSON.stringify(read)).not.toContain('/shiken-media-upload/');
+      expect(JSON.stringify(read)).not.toContain('tokenHash');
+      expect(
+        (
+          await other.callTool({
+            name: 'get_shiken_media',
+            arguments: { id: prepared.id },
+          })
+        ).isError,
+      ).toBe(true);
+      const conflict = await client.callTool({
+        name: 'prepare_shiken_media_upload',
+        arguments: { ...args, sha256: 'b'.repeat(64) },
+      });
+      expect(conflict.isError).toBe(true);
+      expect(JSON.stringify(conflict)).toContain('CONFLICT');
+      for (const invalid of [
+        { ...args, byteLength: 8 * 1024 * 1024 + 1 },
+        { ...args, contentType: 'image/svg+xml' },
+        { ...args, sha256: 'A'.repeat(64) },
+        { ...args, base64: 'forbidden' },
+      ]) {
+        expect(
+          (
+            await client.callTool({
+              name: 'prepare_shiken_media_upload',
+              arguments: invalid,
+            })
+          ).isError,
+        ).toBe(true);
+      }
+      expect(
+        await backend.run((ctx) => ctx.db.query('shikenMedia').collect()),
+      ).toHaveLength(1);
+    } finally {
+      await client.close();
+      await reader.close();
+      await other.close();
+      vi.unstubAllEnvs();
+    }
+  });
+});
+
+describe('MCP personal stories', () => {
+  test('discovers portable reading schemas while preserving Unicode kana validation', async () => {
+    const backend = createTestBackend();
+    const client = await connect(
+      backend,
+      await accessToken({
+        scope: `openid ${STORIES_READ_SCOPE} ${STORIES_WRITE_SCOPE}`,
+      }),
+    );
+    try {
+      const tools = (await client.listTools()).tools;
+      const patterns: string[] = [];
+      const inspect = (value: unknown) => {
+        if (value === null || typeof value !== 'object') return;
+        for (const [key, item] of Object.entries(value)) {
+          if (key === 'pattern' && typeof item === 'string')
+            patterns.push(item);
+          else inspect(item);
+        }
+      };
+      for (const tool of tools) {
+        inspect(tool.inputSchema);
+        inspect(tool.outputSchema);
+      }
+      expect(patterns.length).toBeGreaterThan(0);
+      // tools/list is also consumed by non-JavaScript validators. Unicode
+      // property escapes are not portable across their regex implementations.
+      for (const pattern of patterns) expect(pattern).not.toMatch(/\\[pP]\{/);
+
+      const contentWithReading = (reading: string) => ({
+        ...storyContent,
+        paragraphs: [
+          {
+            ...storyContent.paragraphs[0],
+            segments: [{ text: '山', reading }],
+          },
+        ],
+      });
+      for (const reading of ['やま', 'ヤマー・やま', '𛀁']) {
+        const result = await client.callTool({
+          name: 'create_story',
+          arguments: {
+            clientKey: `portable-reading:${reading.codePointAt(0)}`,
+            story: contentWithReading(reading),
+          },
+        });
+        expect(result.isError).not.toBe(true);
+        expect(
+          storyResultSchema.parse(result.structuredContent).story.paragraphs[0]
+            .segments[0].reading,
+        ).toBe(reading);
+      }
+      for (const reading of ['yama', '山', '😀', '   ']) {
+        const result = await client.callTool({
+          name: 'create_story',
+          arguments: {
+            clientKey: 'portable-reading:invalid',
+            story: contentWithReading(reading),
+          },
+        });
+        expect(result.isError).toBe(true);
+      }
+      expect(
+        await backend.run((ctx) => ctx.db.query('stories').collect()),
+      ).toHaveLength(3);
+    } finally {
+      await client.close();
+    }
+  });
+
+  test('declares independent story scopes and refuses unauthorized access before the gateway', async () => {
+    const backend = createTestBackend();
+    const gatewayFor = vi.fn(() => {
+      throw new Error('Unauthorized stories must not reach data');
+    });
+    for (const entry of [
+      {
+        scope: `openid ${READ_SCOPE}`,
+        name: 'list_stories',
+        required: STORIES_READ_SCOPE,
+      },
+      {
+        scope: `openid ${QUESTS_READ_SCOPE} ${QUESTS_WRITE_SCOPE}`,
+        name: 'get_story',
+        required: STORIES_READ_SCOPE,
+      },
+      {
+        scope: `openid ${STORIES_READ_SCOPE}`,
+        name: 'create_story',
+        required: STORIES_WRITE_SCOPE,
+      },
+      {
+        scope: `openid ${STORIES_READ_SCOPE}`,
+        name: 'set_story_archived',
+        required: STORIES_WRITE_SCOPE,
+      },
+      {
+        scope: `openid ${STORIES_READ_SCOPE}`,
+        name: 'update_story',
+        required: STORIES_WRITE_SCOPE,
+      },
+      {
+        scope: `openid ${STORIES_READ_SCOPE}`,
+        name: 'delete_story',
+        required: STORIES_WRITE_SCOPE,
+      },
+      {
+        scope: `openid ${STORIES_WRITE_SCOPE}`,
+        name: 'create_story',
+        required: STORIES_READ_SCOPE,
+      },
+    ]) {
+      const response = await handleMcpHttp(
+        request(await accessToken({ scope: entry.scope }), {
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'tools/call',
+          params: { name: entry.name, arguments: {} },
+        }),
+        gatewayFor,
+        config,
+      );
+      expect(response.status).toBe(403);
+      expect(response.headers.get('WWW-Authenticate')).toContain(
+        entry.required,
+      );
+    }
+    expect(gatewayFor).not.toHaveBeenCalled();
+    const client = await connect(
+      backend,
+      await accessToken({ scope: `openid ${STORIES_READ_SCOPE}` }),
+    );
+    try {
+      const tools = (await client.listTools()).tools;
+      expect(tools.map((tool) => tool.name)).toEqual(toolNames);
+      for (const name of ['list_stories', 'get_story'])
+        expect(tools.find((tool) => tool.name === name)?._meta).toMatchObject({
+          securitySchemes: [{ type: 'oauth2', scopes: [STORIES_READ_SCOPE] }],
+        });
+      for (const name of [
+        'create_story',
+        'update_story',
+        'delete_story',
+        'set_story_archived',
+      ])
+        expect(tools.find((tool) => tool.name === name)?._meta).toMatchObject({
+          securitySchemes: [
+            {
+              type: 'oauth2',
+              scopes: [STORIES_READ_SCOPE, STORIES_WRITE_SCOPE],
+            },
+          ],
+        });
+      expect(resourceMetadata(config).scopes_supported).toEqual(
+        expect.arrayContaining([STORIES_READ_SCOPE, STORIES_WRITE_SCOPE]),
+      );
+    } finally {
+      await client.close();
+    }
+  });
+
+  test('publishes idempotently, reads full authored content, paginates, and archives only the owner story while retaining progress', async () => {
+    const backend = createTestBackend();
+    const scope = `openid ${STORIES_READ_SCOPE} ${STORIES_WRITE_SCOPE}`;
+    const client = await connect(backend, await accessToken({ scope }));
+    const other = await connect(
+      backend,
+      await accessToken({ scope, sub: 'user_other_story_owner' }),
+    );
+    try {
+      const args = { clientKey: 'daily-story:2026-10-10', story: storyContent };
+      const first = await client.callTool({
+        name: 'create_story',
+        arguments: args,
+      });
+      expect(first.isError).not.toBe(true);
+      const created = storyResultSchema.parse(first.structuredContent).story;
+      expect(created).toMatchObject(storyContent);
+      expect(created.archived).toBe(false);
+      expect(
+        (await client.callTool({ name: 'create_story', arguments: args }))
+          .structuredContent,
+      ).toEqual(first.structuredContent);
+      const conflict = await client.callTool({
+        name: 'create_story',
+        arguments: {
+          ...args,
+          story: { ...storyContent, title: 'Outro título' },
+        },
+      });
+      expect(conflict.isError).toBe(true);
+      expect(JSON.stringify(conflict.content)).toContain('CONFLICT');
+      const otherCreated = storyResultSchema.parse(
+        (await other.callTool({ name: 'create_story', arguments: args }))
+          .structuredContent,
+      ).story;
+      expect(otherCreated.id).not.toBe(created.id);
+      expect(
+        (
+          await other.callTool({
+            name: 'get_story',
+            arguments: { id: created.id },
+          })
+        ).isError,
+      ).toBe(true);
+      expect(
+        (
+          await other.callTool({
+            name: 'set_story_archived',
+            arguments: { id: created.id, archived: true },
+          })
+        ).isError,
+      ).toBe(true);
+      await client.callTool({
+        name: 'create_story',
+        arguments: {
+          ...args,
+          clientKey: 'daily-story:2026-10-11',
+          story: { ...storyContent, title: 'Uma nova história', level: 'N3' },
+        },
+      });
+      const page1 = storyListResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'list_stories',
+            arguments: { limit: 1 },
+          })
+        ).structuredContent,
+      );
+      expect(page1.items).toHaveLength(1);
+      expect(page1.isDone).toBe(false);
+      const page2 = storyListResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'list_stories',
+            arguments: { limit: 1, cursor: page1.cursor },
+          })
+        ).structuredContent,
+      );
+      expect(page2.items).toHaveLength(1);
+      expect(page2.items[0].id).not.toBe(page1.items[0].id);
+      expect(
+        new Set([...page1.items, ...page2.items].map((item) => item.id)),
+      ).toEqual(new Set([created.id, page1.items[0].id]));
+      const found = storyGetResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'get_story',
+            arguments: { id: created.id },
+          })
+        ).structuredContent,
+      );
+      expect(found.story).toEqual(created);
+      expect(found.progress).toBeNull();
+      expect(found.story.questions[0].correctOptionId).toBe('letter');
+      const id = await backend.run(async (ctx) =>
+        ctx.db.normalizeId('stories', created.id),
+      );
+      if (!id) throw new Error('Expected real story ID');
+      const learner = backend.withIdentity(learnerIdentity);
+      await learner.mutation(api.stories.answer, {
+        id,
+        questionId: 'q1',
+        optionId: 'key',
+      });
+      await learner.mutation(api.stories.complete, { id });
+      const completed = storyGetResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'get_story',
+            arguments: { id: created.id },
+          })
+        ).structuredContent,
+      );
+      expect(completed.progress?.completedAt).toBeTypeOf('number');
+      expect(completed.progress?.answers).toMatchObject([
+        { questionId: 'q1', optionId: 'key' },
+      ]);
+      const history = storyListResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'list_stories',
+            arguments: { status: 'completed', level: 'N4' },
+          })
+        ).structuredContent,
+      );
+      expect(history.items.map((item) => item.id)).toEqual([created.id]);
+      const archived = storyResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'set_story_archived',
+            arguments: { id: created.id, archived: true },
+          })
+        ).structuredContent,
+      ).story;
+      expect(archived.archived).toBe(true);
+      expect(archived.paragraphs).toEqual(created.paragraphs);
+      expect(
+        (
+          await client.callTool({
+            name: 'set_story_archived',
+            arguments: { id: created.id, archived: true },
+          })
+        ).structuredContent,
+      ).toEqual({ story: archived });
+      expect(
+        storyGetResultSchema.parse(
+          (
+            await client.callTool({
+              name: 'get_story',
+              arguments: { id: created.id },
+            })
+          ).structuredContent,
+        ).progress,
+      ).toEqual(completed.progress);
+      const active = storyListResultSchema.parse(
+        (await client.callTool({ name: 'list_stories', arguments: {} }))
+          .structuredContent,
+      );
+      expect(active.items.map((item) => item.id)).not.toContain(created.id);
+      const archivedList = storyListResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'list_stories',
+            arguments: { archived: true },
+          })
+        ).structuredContent,
+      );
+      expect(archivedList.items.map((item) => item.id)).toEqual([created.id]);
+      expect(
+        storyResultSchema.parse(
+          (
+            await client.callTool({
+              name: 'set_story_archived',
+              arguments: { id: created.id, archived: false },
+            })
+          ).structuredContent,
+        ).story.archived,
+      ).toBe(false);
+      expect(JSON.stringify(active)).not.toContain('ownerId');
+      expect(JSON.stringify(active)).not.toContain('tokenIdentifier');
+    } finally {
+      await client.close();
+      await other.close();
+    }
+  });
+
+  test('edits with version concurrency, keeps reading history and supports reversible deletion only for the owner', async () => {
+    const backend = createTestBackend();
+    const scope = `openid ${STORIES_READ_SCOPE} ${STORIES_WRITE_SCOPE}`;
+    const client = await connect(backend, await accessToken({ scope }));
+    const other = await connect(
+      backend,
+      await accessToken({ scope, sub: 'user_other_story_editor' }),
+    );
+    try {
+      const originalArgs = {
+        clientKey: 'daily-story:editable',
+        story: storyContent,
+      };
+      const created = storyResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'create_story',
+            arguments: originalArgs,
+          })
+        ).structuredContent,
+      ).story;
+      expect(created.contentVersion).toBe(1);
+      const storyId = await backend.run(async (ctx) =>
+        ctx.db.normalizeId('stories', created.id),
+      );
+      if (!storyId) throw new Error('Expected real story ID');
+      const learner = backend.withIdentity(learnerIdentity);
+      await learner.mutation(api.stories.answer, {
+        id: storyId,
+        questionId: 'q1',
+        optionId: 'key',
+      });
+      await learner.mutation(api.stories.complete, { id: storyId });
+      const before = await learner.query(api.stories.get, { id: storyId });
+
+      const editedContent = {
+        ...storyContent,
+        title: '山からの便り',
+        level: 'N3',
+        paragraphs: [
+          ...storyContent.paragraphs,
+          {
+            id: 'p2',
+            segments: [{ text: 'すぐに返事を書きました。' }],
+            translation: 'Logo escrevi uma resposta.',
+          },
+        ],
+        questions: [{ ...storyContent.questions[0], correctOptionId: 'key' }],
+      };
+      const edit = {
+        id: created.id,
+        expectedContentVersion: 1,
+        story: editedContent,
+      };
+      for (const name of ['update_story', 'delete_story']) {
+        const denied = await other.callTool({
+          name,
+          arguments: name === 'update_story' ? edit : { id: created.id },
+        });
+        expect(denied.isError).toBe(true);
+        expect(JSON.stringify(denied.content)).toContain('UNAVAILABLE');
+      }
+      const updated = storyResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'update_story',
+            arguments: edit,
+          })
+        ).structuredContent,
+      ).story;
+      expect(updated).toMatchObject({
+        ...editedContent,
+        id: created.id,
+        contentVersion: 2,
+      });
+      expect(
+        (await client.callTool({ name: 'update_story', arguments: edit }))
+          .structuredContent,
+      ).toEqual({ story: updated });
+      const conflict = await client.callTool({
+        name: 'update_story',
+        arguments: {
+          ...edit,
+          story: { ...editedContent, title: 'Concurrent edit' },
+        },
+      });
+      expect(conflict.isError).toBe(true);
+      expect(JSON.stringify(conflict.content)).toContain('CONFLICT');
+
+      const latest = storyGetResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'get_story',
+            arguments: { id: created.id },
+          })
+        ).structuredContent,
+      );
+      expect(latest.story).toEqual(updated);
+      expect(latest.progress).toEqual(before?.progress);
+      expect(latest.progress?.contentVersion).toBe(1);
+      expect(
+        await learner.query(api.stories.get, { id: storyId }),
+      ).toMatchObject({
+        story: { ...storyContent, contentVersion: 1 },
+        progress: before?.progress,
+      });
+      const catalog = storyListResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'list_stories',
+            arguments: { level: 'N3' },
+          })
+        ).structuredContent,
+      );
+      expect(catalog.items).toMatchObject([
+        { id: created.id, title: editedContent.title, contentVersion: 2 },
+      ]);
+      const retriedCreation = storyResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'create_story',
+            arguments: originalArgs,
+          })
+        ).structuredContent,
+      ).story;
+      expect(retriedCreation.id).toBe(created.id);
+      expect(retriedCreation.contentVersion).toBe(2);
+
+      const deleted = storyResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'delete_story',
+            arguments: { id: created.id },
+          })
+        ).structuredContent,
+      ).story;
+      expect(deleted.archived).toBe(true);
+      expect(deleted.contentVersion).toBe(2);
+      expect(
+        (
+          await client.callTool({
+            name: 'delete_story',
+            arguments: { id: created.id },
+          })
+        ).structuredContent,
+      ).toEqual({ story: deleted });
+      expect(
+        storyListResultSchema.parse(
+          (await client.callTool({ name: 'list_stories', arguments: {} }))
+            .structuredContent,
+        ).items,
+      ).toEqual([]);
+      const archived = storyListResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'list_stories',
+            arguments: { archived: true },
+          })
+        ).structuredContent,
+      );
+      expect(archived.items).toHaveLength(1);
+      expect(archived.items[0].progress).toEqual(before?.progress);
+      const restored = storyResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'set_story_archived',
+            arguments: { id: created.id, archived: false },
+          })
+        ).structuredContent,
+      ).story;
+      expect(restored).toMatchObject({
+        ...editedContent,
+        id: created.id,
+        contentVersion: 2,
+        archived: false,
+      });
+    } finally {
+      await client.close();
+      await other.close();
+    }
+  });
+
+  test('requires translation for every authored paragraph, without rejecting legacy output', async () => {
+    const backend = createTestBackend();
+    const client = await connect(
+      backend,
+      await accessToken({
+        scope: `openid ${STORIES_READ_SCOPE} ${STORIES_WRITE_SCOPE}`,
+      }),
+    );
+    const secondParagraph = {
+      id: 'p2',
+      segments: [{ text: '返事を書きました。' }],
+    };
+    try {
+      const created = storyResultSchema.parse(
+        (
+          await client.callTool({
+            name: 'create_story',
+            arguments: {
+              clientKey: 'daily-story:translations',
+              story: storyContent,
+            },
+          })
+        ).structuredContent,
+      ).story;
+      for (const translation of [undefined, '', '   ']) {
+        const story = {
+          ...storyContent,
+          paragraphs: [
+            ...storyContent.paragraphs,
+            { ...secondParagraph, translation },
+          ],
+        };
+        const create = { clientKey: 'daily-story:no-translation', story };
+        const update = { id: created.id, expectedContentVersion: 1, story };
+        expect(storyCreateSchema.safeParse(create).success).toBe(false);
+        expect(storyUpdateSchema.safeParse(update).success).toBe(false);
+        expect(
+          (await client.callTool({ name: 'create_story', arguments: create }))
+            .isError,
+        ).toBe(true);
+        expect(
+          (await client.callTool({ name: 'update_story', arguments: update }))
+            .isError,
+        ).toBe(true);
+      }
+      for (const expectedContentVersion of [0, -1, 1.5])
+        expect(
+          storyUpdateSchema.safeParse({
+            id: created.id,
+            expectedContentVersion,
+            story: storyContent,
+          }).success,
+        ).toBe(false);
+      expect(
+        storyResultSchema.safeParse({
+          story: { ...created, paragraphs: [secondParagraph] },
+        }).success,
+      ).toBe(true);
+      expect(
+        (
+          await client.callTool({
+            name: 'get_story',
+            arguments: { id: created.id },
+          })
+        ).structuredContent,
+      ).toMatchObject({ story: created });
+      expect(
+        await backend.run((ctx) => ctx.db.query('stories').collect()),
+      ).toHaveLength(1);
+    } finally {
+      await client.close();
+    }
+  });
+
+  test('rejects forged progress, invalid readings, duplicate IDs, absent correct options and oversized content atomically', async () => {
+    const backend = createTestBackend();
+    const client = await connect(
+      backend,
+      await accessToken({
+        scope: `openid ${STORIES_READ_SCOPE} ${STORIES_WRITE_SCOPE}`,
+      }),
+    );
+    const valid = { clientKey: 'daily-story:invalid', story: storyContent };
+    const invalid = [
+      { ...valid, ownerId: 'forged' },
+      { ...valid, completedAt: Date.now() },
+      { ...valid, story: { ...storyContent, progress: { answers: [] } } },
+      { ...valid, story: { ...storyContent, level: 'N6' } },
+      {
+        ...valid,
+        story: {
+          ...storyContent,
+          paragraphs: [
+            {
+              id: 'p1',
+              segments: [{ text: '山', reading: 'mountain' }],
+              translation: 'Montanha.',
+            },
+          ],
+        },
+      },
+      {
+        ...valid,
+        story: {
+          ...storyContent,
+          paragraphs: [storyContent.paragraphs[0], storyContent.paragraphs[0]],
+        },
+      },
+      {
+        ...valid,
+        story: {
+          ...storyContent,
+          questions: [storyContent.questions[0], storyContent.questions[0]],
+        },
+      },
+      {
+        ...valid,
+        story: {
+          ...storyContent,
+          questions: [
+            { ...storyContent.questions[0], correctOptionId: 'absent' },
+          ],
+        },
+      },
+      {
+        ...valid,
+        story: {
+          ...storyContent,
+          questions: [
+            {
+              ...storyContent.questions[0],
+              options: [
+                { id: 'letter', text: '手紙' },
+                { id: 'letter', text: '鍵' },
+              ],
+            },
+          ],
+        },
+      },
+      {
+        ...valid,
+        story: {
+          ...storyContent,
+          paragraphs: Array.from({ length: 20 }, (_, index) => ({
+            id: `p${index}`,
+            segments: [{ text: '山'.repeat(2000) }],
+            translation: 'Montanha.',
+          })),
+        },
+      },
+    ];
+    try {
+      for (const args of invalid) {
+        expect(storyCreateSchema.safeParse(args).success).toBe(false);
+        expect(
+          (await client.callTool({ name: 'create_story', arguments: args }))
+            .isError,
+        ).toBe(true);
+      }
+      expect(
+        await backend.run((ctx) => ctx.db.query('stories').collect()),
+      ).toEqual([]);
+    } finally {
+      await client.close();
     }
   });
 });

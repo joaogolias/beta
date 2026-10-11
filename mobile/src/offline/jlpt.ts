@@ -11,6 +11,7 @@ import {
   finishAttempt,
 } from '../../../shared/jlpt';
 import type { Data, Saved } from './model';
+import { creditLocalQuests } from './quests';
 
 export type JlptCommand = Extract<OfflineCommand, { type: `jlpt.${string}` }>;
 export function isJlptCommand(command: OfflineCommand): command is JlptCommand {
@@ -159,6 +160,7 @@ export function applyJlptLocal(
       ownerId: data.profile._id,
       paperId: id(command.paperId),
       _creationTime: command.startedAt,
+      ...(command.questId ? { questId: id(command.questId) } : {}),
     } as Doc<'jlptAttempts'>;
     attempts.push(attempt);
     return attempt;
@@ -184,6 +186,19 @@ export function applyJlptLocal(
         ? advanceAttempt(previous, command.occurredAt, command.expectedRevision)
         : finishAttempt(previous, command.occurredAt, command.expectedRevision);
   attempts[index] = { ...previous, ...next };
+  if (
+    previous.status !== 'completed' &&
+    next.status === 'completed' &&
+    next.completedAt !== undefined &&
+    previous.questId
+  )
+    creditLocalQuests(data, {
+      kind: 'shiken',
+      questId: previous.questId,
+      sourceId: previous._id,
+      occurredAt: next.completedAt,
+      paperId: previous.paperId,
+    });
   return attempts[index];
 }
 

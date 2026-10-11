@@ -10,7 +10,7 @@ import { JLPT_SKILLS, type PaperInput } from '../../shared/jlpt';
 // an operator seed, never an application endpoint or a way to provision users.
 const DEV_URL = 'https://kindhearted-hare-87.convex.cloud';
 const TARGET_EMAIL = 'joaovgolias@gmail.com';
-const SEED_ID = 'babel-crux:dev:jlpt-n5-authorial-v1';
+const SEED_ID = 'beta:dev:jlpt-n5-authorial-v1';
 const QUESTION_PREFIX = 'n5-authorial-v1-';
 const targetArgs = { tokenIdentifier: v.string(), email: v.string() };
 const mediaValidator = v.object({
@@ -23,7 +23,7 @@ type Context = QueryCtx | MutationCtx;
 function requireDevelopment() {
   if (process.env.CONVEX_CLOUD_URL !== DEV_URL)
     throw new ConvexError(
-      'Este seed só pode executar no desenvolvimento do Babel Crux.',
+      'Este seed só pode executar no desenvolvimento do beta.',
     );
 }
 
@@ -54,6 +54,24 @@ async function requireTarget(
   return owner;
 }
 
+// Keep seeded papers recognizable across app renames without changing stored
+// attribution, question IDs, or user content. Only branding is comparable under
+// the current name; all trailing credits, licenses, and references stay exact.
+function comparableSeedSource(source: string | undefined) {
+  if (!source) return source;
+  const prefix = /^([^:\r\n]+):dev:jlpt-n5-authorial-v1(?= · |$)/.exec(source);
+  if (!prefix || prefix[1] === 'beta') return source;
+  return (
+    SEED_ID +
+    source
+      .slice(prefix[0].length)
+      .replace(
+        /^ · Questões e roteiros autorais do [^,\r\n]+, setembro de 2026\./,
+        ' · Questões e roteiros autorais do beta, setembro de 2026.',
+      )
+  );
+}
+
 async function findExisting(ctx: Context, owner: Doc<'users'>) {
   const papers = await ctx.db
     .query('jlptPapers')
@@ -67,7 +85,7 @@ async function findExisting(ctx: Context, owner: Doc<'users'>) {
     );
   const matches = papers.filter(
     (paper) =>
-      paper.source?.includes(SEED_ID) ||
+      comparableSeedSource(paper.source)?.startsWith(SEED_ID) ||
       paper.questions.some((question) =>
         question.id.startsWith(QUESTION_PREFIX),
       ),
@@ -222,7 +240,11 @@ export const seed = internalMutation({
     validateReady(paper);
     const existing = await findExisting(ctx, owner);
     if (existing) {
-      if (JSON.stringify(normalizePaper(existing)) !== JSON.stringify(paper))
+      const comparable = normalizePaper({
+        ...existing,
+        source: comparableSeedSource(existing.source),
+      });
+      if (JSON.stringify(comparable) !== JSON.stringify(paper))
         throw new ConvexError(
           'O simulado do seed já existe e foi alterado. Preserve as edições; nenhum dado foi sobrescrito.',
         );

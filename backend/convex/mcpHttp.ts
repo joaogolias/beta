@@ -10,7 +10,7 @@ import {
   MCP_TOOL_SCOPES,
 } from './mcpAuth';
 import type { McpConfiguration, McpPrincipal } from './mcpAuth';
-import { createBabelMcpServer } from './mcpServer';
+import { createBetaMcpServer } from './mcpServer';
 import type { McpGateway } from './mcpServer';
 
 const corsHeaders = {
@@ -42,7 +42,7 @@ async function readBody(
       const next = await reader.read();
       if (next.done) break;
       length += next.value.byteLength;
-      if (length > 256 * 1024) {
+      if (length > 512 * 1024) {
         await reader.cancel();
         return {
           response: Response.json(
@@ -132,7 +132,7 @@ export async function handleMcpHttp(
       for (const required of scopesForOperation(scope))
         requireScope(principal, required);
     }
-    const server = createBabelMcpServer(
+    const server = createBetaMcpServer(
       principal,
       gatewayFor(principal),
       configuration,

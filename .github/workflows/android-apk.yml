@@ -62,19 +62,19 @@ jobs:
           import { join } from 'node:path';
           const encoded = process.env.ANDROID_KEYSTORE_BASE64;
           if (!encoded?.trim()) throw new Error('Configure ANDROID_KEYSTORE_BASE64 neste GitHub Environment.');
-          const path = join(process.env.RUNNER_TEMP, 'babel-crux-signing.jks');
+          const path = join(process.env.RUNNER_TEMP, 'beta-signing.jks');
           writeFileSync(path, Buffer.from(encoded, 'base64'), { mode: 0o600 });
           NODE
       - name: Build and verify standalone signed APK
         env:
-          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/babel-crux-signing.jks
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/beta-signing.jks
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: npm run android:apk
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: babel-crux-${{ inputs.environment }}-${{ inputs.version }}-${{ inputs.version_code }}-${{ github.sha }}-${{ github.run_id }}
+          name: beta-${{ inputs.environment }}-${{ inputs.version }}-${{ inputs.version_code }}-${{ github.sha }}-${{ github.run_id }}
           path: artifacts/${{ inputs.environment }}/
           if-no-files-found: error
           retention-days: 30
@@ -85,5 +85,5 @@ jobs:
           node --input-type=module <<'NODE'
           import { rmSync } from 'node:fs';
           import { join } from 'node:path';
-          rmSync(join(process.env.RUNNER_TEMP, 'babel-crux-signing.jks'), { force: true });
+          rmSync(join(process.env.RUNNER_TEMP, 'beta-signing.jks'), { force: true });
           NODE

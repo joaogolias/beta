@@ -18,6 +18,142 @@ const attemptId = 'owned-attempt' as Id<'jlptAttempts'>;
 const sessionId = 'owned-session' as Id<'studySessions'>;
 
 describe('study navigation', () => {
+  it('keeps stories under Benkyou and retains independent catalog filters after reading', () => {
+    let state = navigationReducer(initialNavigation, {
+      type: 'change-stories',
+      filters: { level: 'N3', status: 'completed' },
+    });
+    state = navigationReducer(state, {
+      type: 'open',
+      route: { name: 'stories-reader', storyId: 'story-one' },
+    });
+    expect(selectedTab(state.route)).toBe('study');
+    expect(canGoBack(state)).toBe(true);
+    state = navigationReducer(state, { type: 'back' });
+    expect(state.route).toEqual({ name: 'stories' });
+    expect(state.stories).toEqual({ level: 'N3', status: 'completed' });
+    state = navigationReducer(state, { type: 'back' });
+    expect(state.route).toEqual({ name: 'study-home' });
+    expect(state.study).toEqual(initialNavigation.study);
+  });
+  it('returns from quests to Benkyou and keeps the six-tab selection model', () => {
+    const state = navigationReducer(
+      { ...initialNavigation, route: { name: 'study-home' } },
+      {
+        type: 'open',
+        route: { name: 'quests' },
+      },
+    );
+    expect(selectedTab(state.route)).toBe('study');
+    expect(canGoBack(state)).toBe(true);
+    expect(navigationReducer(state, { type: 'back' }).route).toEqual({
+      name: 'study-home',
+    });
+  });
+
+  it.each([
+    { name: 'library' as const, category: 'alphabet' as const },
+    { name: 'library' as const, category: 'vocabulary' as const },
+    { name: 'library' as const, category: 'grammar' as const },
+    { name: 'library' as const, category: 'exam' as const },
+    { name: 'jlpt-home' as const, level: 'N3' as const },
+    { name: 'study-home' as const },
+    { name: 'study-settings' as const },
+  ])(
+    'keeps quest origin and library filters through the runner and back (%o)',
+    (origin) => {
+      let state = navigationReducer(initialNavigation, {
+        type: 'open',
+        route: origin,
+      });
+      if (origin.name === 'library')
+        state = navigationReducer(state, {
+          type: 'change-library',
+          filters: {
+            ...state.libraries[origin.category],
+            level: 'N4',
+            query: '山',
+            archived: true,
+          },
+        });
+      const libraries = state.libraries;
+      state = navigationReducer(state, {
+        type: 'open',
+        route: { name: 'quests' },
+      });
+      expect(state.questOrigin).toEqual(origin);
+      expect(parentRoute(state.route, state.questOrigin)).toEqual(origin);
+      expect(selectedTab(state.route, state.questOrigin)).toBe(
+        selectedTab(origin),
+      );
+      state = navigationReducer(state, {
+        type: 'open',
+        route: {
+          name: 'quest-runner',
+          questId: 'quest-one' as Id<'quests'>,
+          run: { kind: 'story', storyId: 'story-one' as Id<'stories'> },
+        },
+      });
+      expect(selectedTab(state.route, state.questOrigin)).toBe(
+        selectedTab(origin),
+      );
+      state = navigationReducer(state, { type: 'back' });
+      expect(state.route).toEqual({ name: 'quests' });
+      expect(state.questOrigin).toEqual(origin);
+      state = navigationReducer(state, { type: 'back' });
+      expect(state.route).toEqual(origin);
+      expect(state.libraries).toBe(libraries);
+    },
+  );
+
+  it('replaces the origin when quests are opened from a different tab', () => {
+    let state = navigationReducer(initialNavigation, {
+      type: 'open',
+      route: { name: 'quests' },
+    });
+    expect(state.questOrigin).toEqual({
+      name: 'library',
+      category: 'alphabet',
+    });
+    state = navigationReducer(state, {
+      type: 'open',
+      route: { name: 'jlpt-home', level: 'N2' },
+    });
+    state = navigationReducer(state, {
+      type: 'open',
+      route: {
+        name: 'quest-runner',
+        questId: 'quest-two' as Id<'quests'>,
+        run: { kind: 'shiken', attemptId },
+      },
+    });
+    state = navigationReducer(state, {
+      type: 'open',
+      route: { name: 'quests' },
+    });
+    expect(navigationReducer(state, { type: 'back' }).route).toEqual({
+      name: 'jlpt-home',
+      level: 'N2',
+    });
+  });
+
+  it('returns a quest runner to the list without changing ordinary study preferences', () => {
+    const questId = 'quest-one' as Id<'quests'>;
+    for (const run of [
+      { kind: 'study' as const, sessionId },
+      { kind: 'shiken' as const, attemptId },
+    ]) {
+      const state = navigationReducer(initialNavigation, {
+        type: 'open',
+        route: { name: 'quest-runner', questId, run },
+      });
+      expect(selectedTab(state.route)).toBe('study');
+      expect(state.study).toBe(initialNavigation.study);
+      expect(navigationReducer(state, { type: 'back' }).route).toEqual({
+        name: 'quests',
+      });
+    }
+  });
   it('keeps historical exam data accessible without opening a Benkyou session', () => {
     let state = navigationReducer(initialNavigation, {
       type: 'change-library',
@@ -264,7 +400,7 @@ describe('study navigation', () => {
     for (const route of [
       { name: 'library' as const, category: 'alphabet' as const },
       { name: 'library' as const, category: 'vocabulary' as const },
-      { name: 'study-settings' as const },
+      { name: 'study-home' as const },
       { name: 'progress' as const },
     ]) {
       const state = navigationReducer(initialNavigation, {
