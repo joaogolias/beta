@@ -2,13 +2,14 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Resvg } from '@resvg/resvg-js';
+import { writeDevelopmentIcons } from './dev-icon.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const assets = resolve(root, 'mobile/assets');
 const brand = resolve(assets, 'brand');
 const drawable = resolve(
   root,
-  'mobile/modules/babel-streak/android/src/main/res/drawable',
+  'mobile/modules/beta-streak/android/src/main/res/drawable',
 );
 const poses = ['welcome', 'celebrate', 'rest', 'sad', 'angry', 'face'];
 const sources = Object.fromEntries(
@@ -46,13 +47,14 @@ render(resolve(assets, 'android-icon-background.png'), background, 1024);
 render(resolve(assets, 'android-icon-foreground.png'), foreground, 1024);
 render(
   resolve(assets, 'android-icon-monochrome.png'),
-  `<defs><filter id="silhouette" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB"><feFlood flood-color="#172B50"/><feComposite in2="SourceAlpha" operator="in"/></filter></defs><g filter="url(#silhouette)">${foreground}</g>`,
+  `<defs><filter id="silhouette" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB"><feFlood flood-color="#2E5948"/><feComposite in2="SourceAlpha" operator="in"/></filter></defs><g filter="url(#silhouette)">${foreground}</g>`,
   1024,
 );
 const icon = `${background}${image('face', 880)}`;
 render(resolve(assets, 'icon.png'), icon, 1024);
 render(resolve(assets, 'splash-icon.png'), foreground, 1024);
 render(resolve(assets, 'favicon.png'), icon, 64);
+writeDevelopmentIcons(assets);
 
 for (const [name, pose] of [
   ['ibex', 'welcome'],
@@ -61,7 +63,7 @@ for (const [name, pose] of [
   ['sad', 'sad'],
   ['angry', 'angry'],
 ]) {
-  render(resolve(drawable, `babel_streak_${name}.png`), image(pose, 1024), 424);
+  render(resolve(drawable, `beta_streak_${name}.png`), image(pose, 1024), 424);
 }
 
 console.log(

@@ -35,7 +35,7 @@ function google(overrides: Partial<GoogleFlowResult> = {}): GoogleFlowResult {
     createdSessionId: 'new-session',
     authSessionResult: {
       type: 'success',
-      url: 'babelcrux-dev://sso-callback?rotating_token_nonce=example',
+      url: 'beta-dev://sso-callback?rotating_token_nonce=example',
     },
     setActive: vi.fn().mockResolvedValue(undefined),
     ...overrides,

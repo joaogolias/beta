@@ -13,10 +13,21 @@ import * as vocabulary from './vocabularyDomain';
 import * as grammar from './grammarDomain';
 import * as exam from './examDomain';
 import * as jlpt from './jlptDomain';
+import {
+  getForOwner as getQuestForOwner,
+  refreshSnapshotsForOwner,
+  snapshotPageForOwner,
+  requireQuestForPractice,
+  validateQuestStudyQueue,
+} from './questsDomain';
+import type { QuestSnapshot } from '../../shared/quests';
+import type { StoryProgress, StoryRecord } from '../../shared/stories';
+import * as stories from './storiesDomain';
 import { fail, requireOwner } from './alphabetDomain';
 import { normalizeStudyFilters, requireStudyCard } from './studyCards';
 import {
   finishForOwner,
+  createQuestSessionForOwner,
   ownedSession,
   rateForOwner,
   revealForOwner,
@@ -36,6 +47,9 @@ type Card =
 type Mapping = { localId: string; serverId: string };
 export type OfflineResult = {
   mappings: Mapping[];
+  storyProgress?: StoryProgress;
+  story?: StoryRecord;
+  quests?: QuestSnapshot[];
   card?: Card;
   paper?: Doc<'jlptPapers'>;
   attempt?: Doc<'jlptAttempts'>;
@@ -240,6 +254,19 @@ async function startStudy(
 ): Promise<OfflineResult> {
   localReference(command.localId);
   const now = timestamp(command.createdAt);
+  const quest = command.questId
+    ? await requireQuestForPractice(ctx, ownerId, command.questId, now, true)
+    : null;
+  if (
+    quest &&
+    (command.mode !== 'direct' ||
+      command.order !== 'sorted' ||
+      Object.keys(command.filters).length)
+  )
+    fail(
+      'VALIDATION',
+      'A sessão da quest usa somente a seleção exata de cards.',
+    );
   if (!command.queue.length || command.queue.length > 100)
     fail('VALIDATION', 'Escolha entre 1 e 100 cards por sessão.');
   if (
@@ -254,7 +281,7 @@ async function startStudy(
       q.eq('ownerId', ownerId).eq('status', 'active'),
     )
     .unique();
-  if (active && !command.force)
+  if (active && !command.force && (!quest || active.questId === quest._id))
     fail(
       'CONFLICT',
       'Uma sessão foi iniciada em outro aparelho. Escolha qual sessão continuar.',
@@ -268,6 +295,11 @@ async function startStudy(
       fail(
         'CONFLICT',
         'Um card desta sessão foi arquivado em outro aparelho. Restaure o card para sincronizar esta sessão.',
+      );
+    if (quest && 'prompt' in card)
+      fail(
+        'VALIDATION',
+        'As questões Shiken não pertencem à fila de cards da quest.',
       );
     if (cardIds.has(card._id))
       fail(
@@ -316,7 +348,34 @@ async function startStudy(
     // Preserve exactly what was studied, even when remote content has changed.
     selected.push({ ...item, cardId: card._id });
   }
+  if (quest)
+    validateQuestStudyQueue(
+      quest,
+      selected.map((item) => item.cardId),
+    );
   if (active) await finishForOwner(ctx, ownerId, { sessionId: active._id });
+  if (quest) {
+    const created = await createQuestSessionForOwner(
+      ctx,
+      ownerId,
+      quest._id,
+      selected.map(({ cardId, snapshot }) => ({ cardId, snapshot })),
+      now,
+    );
+    const mappings = [
+      await addAlias(ctx, ownerId, command.localId, created.session._id),
+    ];
+    for (const [index, item] of selected.entries())
+      mappings.push(
+        await addAlias(
+          ctx,
+          ownerId,
+          item.localId,
+          created.presentationIds[index],
+        ),
+      );
+    return { mappings, session: created.session };
+  }
   const sessionId = await ctx.db.insert('studySessions', {
     ownerId,
     mode: command.mode,
@@ -354,6 +413,54 @@ async function applyCommand(
   ownerId: Id<'users'>,
   command: OfflineCommand,
 ): Promise<OfflineResult> {
+  if (
+    command.type === 'story.progress' ||
+    command.type === 'story.answer' ||
+    command.type === 'story.complete'
+  ) {
+    const id = ctx.db.normalizeId('stories', command.storyId);
+    if (!id) fail('UNAVAILABLE', 'História indisponível.');
+    const occurredAt = timestamp(command.occurredAt);
+    const action =
+      command.type === 'story.progress'
+        ? {
+            type: 'progress' as const,
+            paragraphIndex: command.paragraphIndex,
+            occurredAt,
+          }
+        : command.type === 'story.answer'
+          ? {
+              type: 'answer' as const,
+              questionId: command.questionId,
+              optionId: command.optionId,
+              occurredAt,
+            }
+          : { type: 'complete' as const, occurredAt };
+    const storyProgress = await stories.progressForAction(
+      ctx,
+      ownerId,
+      id,
+      {
+        ...action,
+        contentVersion: command.contentVersion,
+        questId: command.questId,
+      },
+      true,
+    );
+    const saved = await stories.getForOwner(ctx, ownerId, id, command.questId);
+    const questId = command.questId
+      ? ctx.db.normalizeId('quests', command.questId)
+      : null;
+    const quest = questId
+      ? await getQuestForOwner(ctx, ownerId, questId)
+      : null;
+    return {
+      mappings: [],
+      storyProgress,
+      story: saved!.story,
+      ...(quest ? { quests: [quest] } : {}),
+    };
+  }
   if (
     command.type === 'jlpt.create' ||
     command.type === 'jlpt.update' ||
@@ -412,6 +519,8 @@ async function applyCommand(
   const skippedPresentationIds = new Set<Id<'studyPresentations'>>();
   if (command.type === 'study.rate') {
     const skips = command.skippedPresentationIds ?? [];
+    if (session.questId && skips.length)
+      fail('VALIDATION', 'Não é possível pular itens da seleção da quest.');
     if (skips.length > 99)
       fail('VALIDATION', 'A fila de cards ignorados é inválida.');
     const current = await ctx.db.get('studyPresentations', presentationId);
@@ -452,17 +561,29 @@ async function applyCommand(
   // Its following presentations must not disappear before their queued answers.
   if (!session.offlineQueue)
     await ctx.db.patch('studySessions', sessionId, { offlineQueue: true });
+  const quests: QuestSnapshot[] = [];
   const projection =
     command.type === 'study.reveal'
       ? await revealForOwner(ctx, ownerId, args)
       : command.type === 'study.rate'
-        ? await rateForOwner(ctx, ownerId, {
-            ...args,
-            rating: command.rating,
-            skippedPresentationIds,
-          })
-        : await undoForOwner(ctx, ownerId, args);
-  return { mappings: [], projection };
+        ? await rateForOwner(
+            ctx,
+            ownerId,
+            {
+              ...args,
+              rating: command.rating,
+              skippedPresentationIds,
+            },
+            quests,
+          )
+        : await undoForOwner(ctx, ownerId, args, quests);
+  // A retry can return early from rate/undo without changing a contribution.
+  // Still reconcile that quest, including remote cancellation or completion.
+  if (session.questId && !quests.length) {
+    const quest = await getQuestForOwner(ctx, ownerId, session.questId);
+    if (quest) quests.push(quest);
+  }
+  return { mappings: [], projection, quests };
 }
 
 async function applyJlpt(
@@ -498,6 +619,19 @@ async function applyJlpt(
     const attempt = await jlpt.startForOwner(ctx, ownerId, paperId, {
       snapshot: command.snapshot,
       startedAt: timestamp(command.startedAt),
+      ...(command.questId
+        ? {
+            questId: (
+              await requireQuestForPractice(
+                ctx,
+                ownerId,
+                command.questId,
+                timestamp(command.startedAt),
+                true,
+              )
+            )._id,
+          }
+        : {}),
     });
     return {
       attempt,
@@ -506,6 +640,7 @@ async function applyJlpt(
   }
   const id = await resolve(ctx, ownerId, 'jlptAttempts', command.attemptId);
   const occurredAt = timestamp(command.occurredAt);
+  const quests: QuestSnapshot[] = [];
   const attempt =
     command.type === 'jlpt.answer'
       ? await jlpt.answerForOwner(
@@ -527,6 +662,7 @@ async function applyJlpt(
             id,
             command.expectedRevision,
             occurredAt,
+            quests,
           )
         : await jlpt.finishForOwner(
             ctx,
@@ -534,8 +670,9 @@ async function applyJlpt(
             id,
             command.expectedRevision,
             occurredAt,
+            quests,
           );
-  return { attempt, mappings: [] };
+  return { attempt, mappings: [], quests };
 }
 
 export const apply = mutation({
@@ -559,7 +696,29 @@ export const apply = mutation({
     if (receipt) {
       if (receipt.command !== serialized)
         fail('CONFLICT', 'Esta ação já foi enviada com outro conteúdo.');
-      return JSON.parse(receipt.result) as OfflineResult;
+      const result = JSON.parse(receipt.result) as OfflineResult;
+      if (result.quests)
+        result.quests = await refreshSnapshotsForOwner(
+          ctx,
+          ownerId,
+          result.quests,
+        );
+      if (result.storyProgress) {
+        const id = ctx.db.normalizeId('stories', result.storyProgress.storyId);
+        const current = id
+          ? await stories.getForOwner(
+              ctx,
+              ownerId,
+              id,
+              result.storyProgress.questId,
+            )
+          : null;
+        if (current?.progress) {
+          result.storyProgress = current.progress;
+          result.story = current.story;
+        }
+      }
+      return result;
     }
     const result = await applyCommand(ctx, ownerId, command);
     await ctx.db.insert('offlineReceipts', {
@@ -652,8 +811,11 @@ export const state = query({
           ),
         )
       : [];
+    const quests = await snapshotPageForOwner(ctx, ownerId);
     return {
       owner,
+      quests: quests.quests,
+      questsHasMoreHistory: quests.hasMoreHistory,
       stats: stats.slice(0, 1000),
       statsTruncated: stats.length > 1000,
       attempts,

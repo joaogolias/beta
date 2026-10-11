@@ -6,6 +6,13 @@ export const VOCABULARY_READ_SCOPE = 'vocabulary:read';
 export const VOCABULARY_WRITE_SCOPE = 'vocabulary:write';
 export const GRAMMAR_READ_SCOPE = 'grammar:read';
 export const GRAMMAR_WRITE_SCOPE = 'grammar:write';
+export const QUESTS_READ_SCOPE = 'quests:read';
+export const QUESTS_WRITE_SCOPE = 'quests:write';
+export const STUDY_READ_SCOPE = 'study:read';
+export const SHIKEN_READ_SCOPE = 'shiken:read';
+export const SHIKEN_WRITE_SCOPE = 'shiken:write';
+export const STORIES_READ_SCOPE = 'stories:read';
+export const STORIES_WRITE_SCOPE = 'stories:write';
 export const OAUTH_SCOPES = [
   'openid',
   'offline_access',
@@ -15,6 +22,13 @@ export const OAUTH_SCOPES = [
   VOCABULARY_WRITE_SCOPE,
   GRAMMAR_READ_SCOPE,
   GRAMMAR_WRITE_SCOPE,
+  QUESTS_READ_SCOPE,
+  QUESTS_WRITE_SCOPE,
+  STUDY_READ_SCOPE,
+  SHIKEN_READ_SCOPE,
+  SHIKEN_WRITE_SCOPE,
+  STORIES_READ_SCOPE,
+  STORIES_WRITE_SCOPE,
 ];
 
 export const MCP_TOOL_SCOPES: Readonly<Record<string, string>> = {
@@ -32,6 +46,25 @@ export const MCP_TOOL_SCOPES: Readonly<Record<string, string>> = {
   create_grammar: GRAMMAR_WRITE_SCOPE,
   update_grammar: GRAMMAR_WRITE_SCOPE,
   set_grammar_archived: GRAMMAR_WRITE_SCOPE,
+  list_quests: QUESTS_READ_SCOPE,
+  get_quest: QUESTS_READ_SCOPE,
+  create_quest: QUESTS_WRITE_SCOPE,
+  cancel_quest: QUESTS_WRITE_SCOPE,
+  get_study_progress: STUDY_READ_SCOPE,
+  get_study_cards: STUDY_READ_SCOPE,
+  search_shiken_papers: SHIKEN_READ_SCOPE,
+  get_shiken_paper: SHIKEN_READ_SCOPE,
+  get_shiken_history: SHIKEN_READ_SCOPE,
+  create_shiken_paper: SHIKEN_WRITE_SCOPE,
+  get_shiken_paper_content: SHIKEN_WRITE_SCOPE,
+  prepare_shiken_media_upload: SHIKEN_WRITE_SCOPE,
+  get_shiken_media: SHIKEN_READ_SCOPE,
+  list_stories: STORIES_READ_SCOPE,
+  get_story: STORIES_READ_SCOPE,
+  create_story: STORIES_WRITE_SCOPE,
+  update_story: STORIES_WRITE_SCOPE,
+  delete_story: STORIES_WRITE_SCOPE,
+  set_story_archived: STORIES_WRITE_SCOPE,
 };
 
 export function scopesForOperation(scope: string) {
@@ -40,6 +73,9 @@ export function scopesForOperation(scope: string) {
     ...(scope === WRITE_SCOPE ? [READ_SCOPE] : []),
     ...(scope === VOCABULARY_WRITE_SCOPE ? [VOCABULARY_READ_SCOPE] : []),
     ...(scope === GRAMMAR_WRITE_SCOPE ? [GRAMMAR_READ_SCOPE] : []),
+    ...(scope === QUESTS_WRITE_SCOPE ? [QUESTS_READ_SCOPE] : []),
+    ...(scope === STORIES_WRITE_SCOPE ? [STORIES_READ_SCOPE] : []),
+    ...(scope === SHIKEN_WRITE_SCOPE ? [SHIKEN_READ_SCOPE] : []),
     scope,
   ];
 }
@@ -83,6 +119,31 @@ function httpsUrl(value: string | undefined): URL {
   return url;
 }
 
+function matchingClerkInstance(
+  publishableKey: string,
+  secretKey: string,
+  issuer: URL,
+) {
+  const publishable = /^pk_(test|live)_([A-Za-z0-9+/]+={0,2})$/.exec(
+    publishableKey,
+  );
+  const secret = /^sk_(test|live)_\S+$/.exec(secretKey);
+  if (!publishable || !secret || publishable[1] !== secret[1]) return false;
+  // Clerk encodes the frontend API hostname followed by a single "$". Use
+  // the runtime's atob so configuration stays compatible with Convex's edge VM.
+  const decoded = atob(publishable[2]);
+  const hostname = decoded.slice(0, -1);
+  return (
+    decoded.endsWith('$') &&
+    /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i.test(
+      hostname,
+    ) &&
+    issuer.hostname === hostname.toLowerCase() &&
+    issuer.port === '' &&
+    issuer.pathname === '/'
+  );
+}
+
 export function readMcpConfiguration(
   env: Record<string, string | undefined> = process.env,
 ): McpConfiguration {
@@ -102,6 +163,13 @@ export function readMcpConfiguration(
       resource.pathname !== '/mcp'
     ) {
       throw new Error('Missing MCP configuration');
+    }
+    if (!matchingClerkInstance(publishableKey, secretKey, issuer))
+      throw new Error('Inconsistent Clerk instance configuration');
+    if (env.CONVEX_SITE_URL !== undefined) {
+      const site = httpsUrl(env.CONVEX_SITE_URL);
+      if (site.pathname !== '/' || site.origin !== resource.origin)
+        throw new Error('Inconsistent MCP deployment configuration');
     }
     const allowedOrigins = (
       env.MCP_ALLOWED_ORIGINS ?? 'https://chatgpt.com,https://chat.openai.com'
@@ -124,7 +192,7 @@ export function readMcpConfiguration(
 export function resourceMetadata(configuration: McpConfiguration) {
   return {
     resource: configuration.resource,
-    resource_name: 'Babel Crux — alfabeto, vocabulário e gramática pessoais',
+    resource_name: 'beta — biblioteca, histórias, quests e progresso pessoal',
     authorization_servers: [configuration.issuer],
     scopes_supported: OAUTH_SCOPES,
     bearer_methods_supported: ['header'],
@@ -155,7 +223,7 @@ export function requireScope(principal: McpPrincipal, scope: string) {
   if (!principal.scopes.includes(scope)) {
     throw new McpAccessError(
       403,
-      `Reconecte sua conta Babel Crux e autorize o escopo ${scope} para usar esta ferramenta.`,
+      `Reconecte sua conta beta e autorize o escopo ${scope} para usar esta ferramenta.`,
       scope,
     );
   }
@@ -169,7 +237,7 @@ export async function authenticateMcp(
   const authorization = request.headers.get('authorization');
   const match = authorization?.match(/^Bearer ([^\s,]+)$/i);
   if (!match || match[1].length > 16_384) {
-    throw new McpAccessError(401, 'Conecte sua conta Babel Crux com OAuth.');
+    throw new McpAccessError(401, 'Conecte sua conta beta com OAuth.');
   }
   try {
     // A JWT carries the resource audience. Session JWTs and opaque tokens are not
@@ -219,7 +287,7 @@ export async function authenticateMcp(
     ) {
       throw new McpAccessError(
         401,
-        'A autorização OAuth expirou ou não é válida para o Babel Crux.',
+        'A autorização OAuth expirou ou não é válida para o beta.',
       );
     }
     const principal = {
@@ -231,16 +299,26 @@ export async function authenticateMcp(
     if (
       !principal.scopes.includes(READ_SCOPE) &&
       !principal.scopes.includes(VOCABULARY_READ_SCOPE) &&
-      !principal.scopes.includes(GRAMMAR_READ_SCOPE)
+      !principal.scopes.includes(GRAMMAR_READ_SCOPE) &&
+      !principal.scopes.includes(QUESTS_READ_SCOPE) &&
+      !principal.scopes.includes(STUDY_READ_SCOPE) &&
+      !principal.scopes.includes(SHIKEN_READ_SCOPE) &&
+      !principal.scopes.includes(STORIES_READ_SCOPE)
     ) {
-      const requiredRead = principal.scopes.includes(GRAMMAR_WRITE_SCOPE)
-        ? GRAMMAR_READ_SCOPE
-        : principal.scopes.includes(VOCABULARY_WRITE_SCOPE)
-          ? VOCABULARY_READ_SCOPE
-          : READ_SCOPE;
+      const requiredRead = principal.scopes.includes(SHIKEN_WRITE_SCOPE)
+        ? SHIKEN_READ_SCOPE
+        : principal.scopes.includes(STORIES_WRITE_SCOPE)
+          ? STORIES_READ_SCOPE
+          : principal.scopes.includes(QUESTS_WRITE_SCOPE)
+            ? QUESTS_READ_SCOPE
+            : principal.scopes.includes(GRAMMAR_WRITE_SCOPE)
+              ? GRAMMAR_READ_SCOPE
+              : principal.scopes.includes(VOCABULARY_WRITE_SCOPE)
+                ? VOCABULARY_READ_SCOPE
+                : READ_SCOPE;
       throw new McpAccessError(
         403,
-        'Reconecte sua conta Babel Crux e autorize a leitura do alfabeto, do vocabulário ou da gramática.',
+        'Reconecte sua conta beta e autorize a leitura da área que deseja usar.',
         requiredRead,
       );
     }

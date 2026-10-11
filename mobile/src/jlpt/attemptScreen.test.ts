@@ -23,6 +23,11 @@ vi.mock('../offline/hooks', () => ({
 }));
 vi.mock('./ListeningPlayer', () => ({ ListeningPlayer: () => null }));
 vi.mock('./CachedImage', () => ({ CachedImage: () => null }));
+vi.mock('react-native-safe-area-context', () => ({
+  SafeAreaProvider: ({ children }: React.PropsWithChildren) => children,
+  SafeAreaView: ({ children }: React.PropsWithChildren) =>
+    React.createElement('div', null, children),
+}));
 vi.mock('react-native', async () => {
   const { createElement } = await import('react');
   type Props = {

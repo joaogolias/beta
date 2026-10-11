@@ -1,0 +1,7 @@
+<resources>
+  <color name="beta_streak_background">#494A40</color>
+  <color name="beta_streak_outline">#696557</color>
+  <color name="beta_streak_foreground">#FFFCF6</color>
+  <color name="beta_streak_foreground_muted">#F2E8CC</color>
+  <color name="beta_streak_accent">#2E5948</color>
+</resources>

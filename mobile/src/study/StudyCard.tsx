@@ -1,3 +1,4 @@
+import { AppModal } from '../environment/AppEnvironment';
 import {
   useEffect,
   useLayoutEffect,
@@ -11,7 +12,6 @@ import {
   ActivityIndicator,
   Animated,
   Easing,
-  Modal,
   PanResponder,
   Pressable,
   ScrollView,
@@ -49,8 +49,8 @@ const ratings = [
     label: 'Acertei parcialmente',
     mark: '2×',
     direction: 'toque duplo no verso',
-    color: palette.blueDeep,
-    background: palette.blueSoft,
+    color: palette.tertiaryDeep,
+    background: palette.tertiarySoft,
   },
   {
     value: 'correct',
@@ -58,7 +58,7 @@ const ratings = [
     mark: '→',
     direction: 'direita',
     color: palette.surface,
-    background: palette.blue,
+    background: palette.primary,
   },
 ] as const;
 
@@ -357,7 +357,7 @@ export function StudyCard(props: StudyCardProps) {
             activeRating && {
               borderColor:
                 activeRating.value === 'correct'
-                  ? palette.blue
+                  ? palette.primary
                   : activeRating.color,
               borderWidth: 2,
             },
@@ -521,7 +521,7 @@ export function StudyCard(props: StudyCardProps) {
               {state.phase === 'revealing' && (
                 <ActivityIndicator
                   style={styles.revealing}
-                  color={palette.blue}
+                  color={palette.primary}
                 />
               )}
             </Pressable>
@@ -563,7 +563,7 @@ export function StudyCard(props: StudyCardProps) {
                 {state.phase === 'revealing' && (
                   <ActivityIndicator
                     style={styles.revealing}
-                    color={palette.blue}
+                    color={palette.primary}
                   />
                 )}
               </Pressable>
@@ -594,7 +594,7 @@ export function StudyCard(props: StudyCardProps) {
           )}
           {state.phase === 'saving' && (
             <View style={styles.savingOverlay} pointerEvents="none">
-              <ActivityIndicator color={palette.blue} />
+              <ActivityIndicator color={palette.primary} />
               <Text style={styles.savingLabel}>Salvando…</Text>
             </View>
           )}
@@ -687,7 +687,7 @@ export function StudyCard(props: StudyCardProps) {
         </View>
       )}
       {state.error && <Notice error>{state.error}</Notice>}
-      <Modal
+      <AppModal
         visible={promptOpen}
         animationType={reducedMotion ? 'none' : 'fade'}
         onRequestClose={() => setPromptOpen(false)}
@@ -716,8 +716,8 @@ export function StudyCard(props: StudyCardProps) {
             </Text>
           </ScrollView>
         </SafeAreaView>
-      </Modal>
-      <Modal
+      </AppModal>
+      <AppModal
         visible={detailsOpen}
         animationType={reducedMotion ? 'none' : 'fade'}
         onRequestClose={() => setDetailsOpen(false)}
@@ -768,7 +768,7 @@ export function StudyCard(props: StudyCardProps) {
             ))}
           </ScrollView>
         </SafeAreaView>
-      </Modal>
+      </AppModal>
     </View>
   );
 }
@@ -799,7 +799,7 @@ const styles = StyleSheet.create({
     top: 12,
   },
   secondPaper: {
-    backgroundColor: palette.mountainSoft,
+    backgroundColor: palette.stoneSoft,
     transform: [{ scale: 0.96 }],
     top: 8,
   },
@@ -807,7 +807,7 @@ const styles = StyleSheet.create({
     bottom: undefined,
     backgroundColor: palette.surface,
     elevation: 3,
-    shadowColor: palette.navy,
+    shadowColor: palette.forest,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.06,
     shadowRadius: 16,
@@ -846,7 +846,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  flipLabel: { fontSize: 12, fontWeight: '700', color: palette.blue },
+  flipLabel: { fontSize: 12, fontWeight: '700', color: palette.primary },
   backPreview: {
     flex: 1,
     overflow: 'hidden',
@@ -886,7 +886,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 16,
     elevation: 5,
-    shadowColor: palette.navy,
+    shadowColor: palette.forest,
     shadowOpacity: 0.12,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 3 },
@@ -945,11 +945,11 @@ const styles = StyleSheet.create({
     minHeight: 48,
     paddingHorizontal: 22,
     paddingVertical: 13,
-    backgroundColor: palette.blueSoft,
+    backgroundColor: palette.primarySoft,
     borderRadius: 16,
     marginTop: 5,
   },
-  revealLabel: { color: palette.blueDeep, fontWeight: '700', fontSize: 14 },
+  revealLabel: { color: palette.primaryDeep, fontWeight: '700', fontSize: 14 },
   detailsModal: { flex: 1, backgroundColor: palette.surface },
   detailsHeader: {
     flexDirection: 'row',

@@ -32,12 +32,11 @@ jobs:
           package-manager-cache: false
       - run: npm ci
       - run: npm run check
-      - name: Deploy selected production backend
+      - name: Validate the production target and its remote configuration
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
-        run: |
-          if [ -z "$CONVEX_DEPLOY_KEY" ]; then
-            echo 'Configure CONVEX_DEPLOY_KEY no GitHub Environment production.' >&2
-            exit 1
-          fi
-          npm run deploy --workspace backend
+        run: node scripts/production-check.mjs --deployment glad-bison-698
+      - name: Deploy validated production backend
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+        run: npm run deploy --workspace backend

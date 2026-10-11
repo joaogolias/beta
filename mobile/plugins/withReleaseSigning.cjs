@@ -1,35 +1,35 @@
-const start = '// @generated babel-crux-release-signing start';
-const end = '// @generated babel-crux-release-signing end';
+const start = '// @generated beta-release-signing start';
+const end = '// @generated beta-release-signing end';
 
 // Credentials are read by Gradle at execution time, never interpolated into a file.
 const signing = `
 ${start}
-def babelCruxSigningNames = ['ANDROID_KEYSTORE_PATH', 'ANDROID_KEYSTORE_PASSWORD', 'ANDROID_KEY_ALIAS', 'ANDROID_KEY_PASSWORD']
-def babelCruxSigning = babelCruxSigningNames.collectEntries { name -> [(name): System.getenv(name)] }
+def betaSigningNames = ['ANDROID_KEYSTORE_PATH', 'ANDROID_KEYSTORE_PASSWORD', 'ANDROID_KEY_ALIAS', 'ANDROID_KEY_PASSWORD']
+def betaSigning = betaSigningNames.collectEntries { name -> [(name): System.getenv(name)] }
 android {
     signingConfigs {
-        babelCruxRelease {
-            if (babelCruxSigning['ANDROID_KEYSTORE_PATH']) {
-                storeFile file(babelCruxSigning['ANDROID_KEYSTORE_PATH'])
+        betaRelease {
+            if (betaSigning['ANDROID_KEYSTORE_PATH']) {
+                storeFile file(betaSigning['ANDROID_KEYSTORE_PATH'])
             }
-            storePassword babelCruxSigning['ANDROID_KEYSTORE_PASSWORD']
-            keyAlias babelCruxSigning['ANDROID_KEY_ALIAS']
-            keyPassword babelCruxSigning['ANDROID_KEY_PASSWORD']
+            storePassword betaSigning['ANDROID_KEYSTORE_PASSWORD']
+            keyAlias betaSigning['ANDROID_KEY_ALIAS']
+            keyPassword betaSigning['ANDROID_KEY_PASSWORD']
         }
     }
     buildTypes {
         release {
-            signingConfig signingConfigs.babelCruxRelease
+            signingConfig signingConfigs.betaRelease
         }
     }
 }
 gradle.taskGraph.whenReady { graph ->
     if (graph.allTasks.any { it.project == project && it.name.toLowerCase().contains('release') }) {
-        def missing = babelCruxSigningNames.findAll { !babelCruxSigning[it]?.trim() }
+        def missing = betaSigningNames.findAll { !betaSigning[it]?.trim() }
         if (!missing.isEmpty()) {
             throw new GradleException('Assinatura Android incompleta: ' + missing.join(', '))
         }
-        def keyFile = new File(babelCruxSigning['ANDROID_KEYSTORE_PATH'])
+        def keyFile = new File(betaSigning['ANDROID_KEYSTORE_PATH'])
         if (!keyFile.isAbsolute() || !keyFile.isFile()) {
             throw new GradleException('ANDROID_KEYSTORE_PATH deve ser um caminho absoluto para um keystore existente.')
         }

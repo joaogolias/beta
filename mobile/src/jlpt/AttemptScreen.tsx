@@ -1,5 +1,6 @@
+import { AppModal } from '../environment/AppEnvironment';
 import { useEffect, useState } from 'react';
-import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { api } from '../../../backend/convex/_generated/api';
 import type { Doc, Id } from '../../../backend/convex/_generated/dataModel';
 import {
@@ -27,29 +28,50 @@ import { CachedImage } from './CachedImage';
 export function JlptAttemptScreen({
   attemptId,
   onHome,
+  quest,
 }: {
   attemptId: Id<'jlptAttempts'>;
   onHome: () => void;
+  quest?: { title: string; onCompleted: () => void };
 }) {
   const attempt = useQuery(api.jlpt.getAttempt, { id: attemptId });
+  useEffect(() => {
+    if (quest && attempt?.status === 'completed') quest.onCompleted();
+  }, [quest, attempt?.status]);
   if (attempt === undefined) return <Loading label="Retomando seu simulado…" />;
   if (!attempt)
     return (
-      <Notice error>Esta tentativa não está disponível neste aparelho.</Notice>
+      <View style={ui.stack}>
+        <Notice error>
+          Esta tentativa não está disponível neste aparelho.
+        </Notice>
+        <Action
+          label={quest ? 'Voltar às quests' : 'Voltar aos simulados'}
+          onPress={onHome}
+        />
+      </View>
     );
+  if (quest && attempt.status === 'completed')
+    return <Loading label="Continuando sua quest…" />;
   return attempt.status === 'completed' ? (
     <AttemptResult attempt={attempt} onHome={onHome} />
   ) : (
-    <ActiveAttempt attempt={attempt} onHome={onHome} />
+    <ActiveAttempt
+      attempt={attempt}
+      onHome={onHome}
+      questTitle={quest?.title}
+    />
   );
 }
 
 function ActiveAttempt({
   attempt,
   onHome,
+  questTitle,
 }: {
   attempt: Doc<'jlptAttempts'>;
   onHome: () => void;
+  questTitle?: string;
 }) {
   const [now, setNow] = useState(Date.now);
   const [selection, setSelection] = useState<{
@@ -116,12 +138,23 @@ function ActiveAttempt({
     <View style={styles.screen}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Voltar aos simulados, mantendo o cronômetro"
+        accessibilityLabel={
+          questTitle
+            ? 'Voltar às quests, mantendo o cronômetro'
+            : 'Voltar aos simulados, mantendo o cronômetro'
+        }
         onPress={onHome}
         style={styles.outlineButton}
       >
-        <Text style={styles.buttonText}>‹ Seus simulados</Text>
+        <Text style={styles.buttonText}>
+          {questTitle ? '‹ Quests' : '‹ Seus simulados'}
+        </Text>
       </Pressable>
+      {questTitle && (
+        <Text accessibilityRole="header" style={styles.sectionTitle}>
+          {questTitle}
+        </Text>
+      )}
       <View
         style={styles.timer}
         accessibilityLabel={`${expired ? 'Tempo encerrado' : 'Tempo restante'}: ${clockText(attempt.blockDeadlineAt, now)}`}
@@ -280,7 +313,7 @@ function ActiveAttempt({
         Não há correção durante a prova. Suas respostas são salvas neste
         aparelho a cada escolha.
       </Text>
-      <Modal
+      <AppModal
         visible={confirm !== null}
         transparent
         animationType="fade"
@@ -340,7 +373,7 @@ function ActiveAttempt({
             />
           </ScrollView>
         </View>
-      </Modal>
+      </AppModal>
     </View>
   );
 }

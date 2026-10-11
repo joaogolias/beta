@@ -4,7 +4,7 @@ import type { Persistence } from './engine';
 export type { CachedProfile } from './model';
 
 export function persistence(accountKey: string): Persistence {
-  const key = `babel-crux:offline:v1:${encodeURIComponent(accountKey)}`;
+  const key = `beta:offline:v1:${encodeURIComponent(accountKey)}`;
   return {
     async read() {
       const raw = await Storage.getItem(key);
@@ -51,7 +51,7 @@ export async function getCachedProfile(
 }
 
 export function offlinePreference(accountKey: string) {
-  const key = `babel-crux:offline-mode:v1:${encodeURIComponent(accountKey)}`;
+  const key = `beta:offline-mode:v1:${encodeURIComponent(accountKey)}`;
   return {
     async read() {
       return (await Storage.getItem(key)) === 'offline';

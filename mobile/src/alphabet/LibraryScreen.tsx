@@ -1,8 +1,8 @@
+import { AppModal } from '../environment/AppEnvironment';
 import { useDeferredValue, useEffect, useState } from 'react';
 import { usePaginatedQuery } from '../offline/hooks';
 import {
   KeyboardAvoidingView,
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -15,6 +15,7 @@ import type { Doc, Id } from '../../../backend/convex/_generated/dataModel';
 import { jlptLevels, type JlptLevel } from './form';
 import type { CardCategory } from '../vocabulary/CategoryPicker';
 import { palette } from '../theme';
+import { RockTexture } from '../brand/RockTexture';
 import { Action, Choice, Field, Loading, Notice, ui } from './ui';
 
 export type LibraryFilters = {
@@ -216,6 +217,7 @@ export function LibraryScreen({
             <Text style={styles.breadcrumbText}>← Todas as coleções</Text>
           </Pressable>
           <View style={styles.collectionHero}>
+            <RockTexture tone="dark" />
             <View style={styles.heroCopy}>
               <Text style={styles.heroEyebrow}>COLEÇÃO JLPT</Text>
               <Text style={styles.heroLevel}>{filters.level}</Text>
@@ -258,12 +260,17 @@ export function LibraryScreen({
                   styles.collection,
                   index === 0
                     ? styles.firstCollection
-                    : index % 2
-                      ? styles.lightCollection
-                      : styles.darkCollection,
+                    : index === 1
+                      ? styles.sandCollection
+                      : index === 2
+                        ? styles.clayCollection
+                        : index === 3
+                          ? styles.lightCollection
+                          : styles.darkCollection,
                   pressed && ui.pressed,
                 ]}
               >
+                <RockTexture tone={index % 2 === 1 ? 'light' : 'dark'} />
                 <View style={styles.collectionTop}>
                   <Text
                     style={[
@@ -540,7 +547,7 @@ export function LibraryScreen({
           </>
         )}
       </View>
-      <Modal
+      <AppModal
         visible={filtersOpen}
         transparent
         animationType="slide"
@@ -627,7 +634,7 @@ export function LibraryScreen({
             </ScrollView>
           </View>
         </KeyboardAvoidingView>
-      </Modal>
+      </AppModal>
     </View>
   );
 }
@@ -840,17 +847,22 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     justifyContent: 'space-between',
   },
-  firstCollection: { backgroundColor: palette.blue },
-  lightCollection: {
-    backgroundColor: palette.mountainSoft,
+  firstCollection: { backgroundColor: palette.primary },
+  sandCollection: {
+    backgroundColor: palette.tertiarySoft,
     borderWidth: 1,
     borderColor: palette.line,
   },
-  darkCollection: { backgroundColor: palette.mountainDeep },
+  clayCollection: { backgroundColor: palette.secondary },
+  lightCollection: {
+    backgroundColor: palette.stoneSoft,
+    borderWidth: 1,
+    borderColor: palette.line,
+  },
+  darkCollection: { backgroundColor: palette.stoneDeep },
   collectionTop: { flexDirection: 'row', justifyContent: 'space-between' },
   collectionIndex: {
     color: palette.surface,
-    opacity: 0.75,
     fontSize: 10,
     fontWeight: '600',
     letterSpacing: 2,
@@ -864,14 +876,14 @@ const styles = StyleSheet.create({
     letterSpacing: -2,
   },
   collectionName: { color: palette.surface, fontSize: 11, fontWeight: '500' },
-  darkText: { color: palette.mountainDeep, opacity: 1 },
+  darkText: { color: palette.stoneDeep, opacity: 1 },
   collectionRing: {
     position: 'absolute',
     width: 120,
     height: 120,
     borderRadius: 60,
     borderWidth: 1,
-    borderColor: 'rgba(150,180,255,0.32)',
+    borderColor: palette.onDarkLine,
     top: 29,
     right: -49,
   },
@@ -881,19 +893,23 @@ const styles = StyleSheet.create({
     marginTop: -12,
     marginBottom: -16,
   },
-  breadcrumbText: { color: palette.blueDeep, fontSize: 13, fontWeight: '600' },
+  breadcrumbText: {
+    color: palette.primaryDeep,
+    fontSize: 13,
+    fontWeight: '600',
+  },
   collectionHero: {
     minHeight: 186,
     borderRadius: 26,
     padding: 24,
-    backgroundColor: palette.navy,
+    backgroundColor: palette.forest,
     flexDirection: 'row',
     overflow: 'hidden',
   },
   heroCopy: { flex: 1, gap: 5, zIndex: 1 },
   heroEyebrow: {
     fontSize: 10,
-    color: '#ADC2FF',
+    color: palette.onForest,
     letterSpacing: 2,
     fontWeight: '700',
   },
@@ -912,7 +928,7 @@ const styles = StyleSheet.create({
     height: 190,
     width: 190,
     borderWidth: 1,
-    borderColor: '#365286',
+    borderColor: palette.onDarkLine,
     borderRadius: 95,
     alignItems: 'center',
     justifyContent: 'center',
@@ -922,9 +938,9 @@ const styles = StyleSheet.create({
     width: 145,
     height: 145,
     borderRadius: 73,
-    backgroundColor: '#1D3470',
+    backgroundColor: palette.primary,
   },
-  heroMark: { fontSize: 78, color: '#7497FF', fontWeight: '300' },
+  heroMark: { fontSize: 78, color: palette.onForestMuted, fontWeight: '300' },
   archive: { gap: 14 },
   archiveHeading: { flexDirection: 'row', alignItems: 'center', gap: 7 },
   iconButton: {
@@ -937,7 +953,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 7,
   },
-  activeIcon: { backgroundColor: palette.blueSoft, borderColor: palette.blue },
+  activeIcon: {
+    backgroundColor: palette.primarySoft,
+    borderColor: palette.primary,
+  },
   searchGlyph: {
     width: 14,
     height: 14,
@@ -987,9 +1006,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   clearButton: { minHeight: 44, justifyContent: 'center' },
-  clearText: { color: palette.blueDeep, fontSize: 12, fontWeight: '600' },
+  clearText: { color: palette.primaryDeep, fontSize: 12, fontWeight: '600' },
   empty: { paddingVertical: 32, gap: 10, alignItems: 'center' },
-  emptyMark: { fontSize: 44, color: palette.blue, marginBottom: 6 },
+  emptyMark: { fontSize: 44, color: palette.primary, marginBottom: 6 },
   emptyTitle: {
     fontSize: 18,
     color: palette.ink,
@@ -1011,16 +1030,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: palette.line,
   },
-  pressedRow: { backgroundColor: palette.mountainSoft, borderRadius: 16 },
+  pressedRow: { backgroundColor: palette.stoneSoft, borderRadius: 16 },
   symbolTile: {
     width: 70,
     height: 78,
     borderRadius: 18,
-    backgroundColor: palette.mountainSoft,
+    backgroundColor: palette.stoneSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  symbol: { fontSize: 43, lineHeight: 61, color: palette.mountainDeep },
+  symbol: { fontSize: 43, lineHeight: 61, color: palette.stoneDeep },
   rowCopy: { flex: 1, gap: 5, minWidth: 0 },
   meaning: {
     color: palette.ink,
@@ -1032,14 +1051,14 @@ const styles = StyleSheet.create({
   rowArrow: { color: palette.muted, fontSize: 20 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, flexShrink: 1 },
   chip: {
-    backgroundColor: palette.mountainSoft,
+    backgroundColor: palette.stoneSoft,
     paddingHorizontal: 7,
     paddingVertical: 3,
     borderRadius: 6,
     alignSelf: 'flex-start',
   },
   chipText: {
-    color: palette.mountainDeep,
+    color: palette.stoneDeep,
     fontSize: 10,
     lineHeight: 14,
     fontWeight: '700',
@@ -1047,7 +1066,7 @@ const styles = StyleSheet.create({
   wordAccent: {
     alignSelf: 'stretch',
     width: 3,
-    backgroundColor: palette.blue,
+    backgroundColor: palette.primary,
     borderRadius: 3,
     marginVertical: 5,
   },
@@ -1072,7 +1091,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     left: 0,
-    backgroundColor: 'rgba(10,22,50,0.42)',
+    backgroundColor: palette.scrim,
   },
   sheet: {
     backgroundColor: palette.surface,

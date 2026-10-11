@@ -17,6 +17,16 @@ import {
 } from '../../shared/jlpt';
 import { normalizedSearch } from './alphabetDomain';
 import { PAGE_READ_BYTES } from './readBudget';
+import {
+  creditForOwner,
+  requireQuestForPractice,
+  questSnapshot,
+} from './questsDomain';
+import {
+  remainingQuestCardIds,
+  remainingQuestPaperIds,
+  type QuestSnapshot,
+} from '../../shared/quests';
 export * from '../../shared/jlpt';
 
 type Context = MutationCtx | QueryCtx;
@@ -172,10 +182,33 @@ export async function startForOwner(
   ctx: MutationCtx,
   ownerId: Id<'users'>,
   paperId: Id<'jlptPapers'>,
-  options: { snapshot?: PaperSnapshot; startedAt?: number } = {},
+  options: {
+    snapshot?: PaperSnapshot;
+    startedAt?: number;
+    questId?: Id<'quests'>;
+  } = {},
 ) {
   const paper = await requirePaper(ctx, ownerId, paperId);
   const startedAt = options.startedAt ?? Date.now();
+  if (options.questId) {
+    const quest = questSnapshot(
+      await requireQuestForPractice(
+        ctx,
+        ownerId,
+        options.questId,
+        startedAt,
+        options.startedAt !== undefined,
+      ),
+    );
+    if (
+      remainingQuestCardIds(quest).length ||
+      remainingQuestPaperIds(quest)[0] !== paperId
+    )
+      jlptFail(
+        'CONFLICT',
+        'A seleção restante da quest mudou. Atualize a quest antes de continuar.',
+      );
+  }
   if (paper.archived && (!options.snapshot || startedAt >= paper.updatedAt))
     jlptFail(
       'CONFLICT',
@@ -200,6 +233,7 @@ export async function startForOwner(
     ...state,
     ownerId,
     paperId,
+    ...(options.questId ? { questId: options.questId } : {}),
   });
   return requireAttempt(ctx, ownerId, id);
 }
@@ -226,6 +260,7 @@ export async function advanceForOwner(
   id: Id<'jlptAttempts'>,
   expectedRevision: number,
   occurredAt = Date.now(),
+  questChanges: QuestSnapshot[] = [],
 ) {
   const previous = await requireAttempt(ctx, ownerId, id);
   const next = advanceAttempt(previous, occurredAt, expectedRevision);
@@ -238,6 +273,16 @@ export async function advanceForOwner(
     completedAt: next.completedAt,
     revision: next.revision,
   });
+  if (next.status === 'completed' && previous.questId)
+    questChanges.push(
+      ...(await creditForOwner(ctx, ownerId, {
+        kind: 'shiken',
+        sourceId: id,
+        occurredAt: next.completedAt!,
+        questId: previous.questId,
+        paperId: previous.paperId,
+      })),
+    );
   return requireAttempt(ctx, ownerId, id);
 }
 export async function finishForOwner(
@@ -246,6 +291,7 @@ export async function finishForOwner(
   id: Id<'jlptAttempts'>,
   expectedRevision: number,
   occurredAt = Date.now(),
+  questChanges: QuestSnapshot[] = [],
 ) {
   const previous = await requireAttempt(ctx, ownerId, id);
   const next = finishAttempt(previous, occurredAt, expectedRevision);
@@ -255,6 +301,16 @@ export async function finishForOwner(
     lastActionAt: next.lastActionAt,
     revision: next.revision,
   });
+  if (previous.questId)
+    questChanges.push(
+      ...(await creditForOwner(ctx, ownerId, {
+        kind: 'shiken',
+        sourceId: id,
+        occurredAt: next.completedAt!,
+        questId: previous.questId,
+        paperId: previous.paperId,
+      })),
+    );
   return requireAttempt(ctx, ownerId, id);
 }
 export async function historyForOwner(

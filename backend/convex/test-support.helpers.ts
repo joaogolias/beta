@@ -10,8 +10,8 @@ export function createTestBackend() {
 
 export const learnerIdentity = {
   subject: 'user_learner',
-  issuer: 'https://babel-crux-test.clerk.accounts.dev',
-  tokenIdentifier: 'https://babel-crux-test.clerk.accounts.dev|user_learner',
+  issuer: 'https://beta-test.clerk.accounts.dev',
+  tokenIdentifier: 'https://beta-test.clerk.accounts.dev|user_learner',
   name: 'Akira',
   email: 'akira@example.com',
   pictureUrl: 'https://example.com/akira.png',

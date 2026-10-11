@@ -5,6 +5,10 @@ import * as vocabulary from '../../../shared/vocabularyContent';
 import * as grammar from '../../../shared/grammarContent';
 import * as exam from '../../../shared/examContent';
 import { applyJlptLocal, isJlptCommand, queryJlptLocal } from './jlpt';
+import type { QuestSnapshot } from '../../../shared/quests';
+import { creditLocalStudy } from './quests';
+import { applyStoryLocal, isStoryCommand } from './stories';
+import type { StoryRecord, StoryProgress } from '../../../shared/stories';
 import {
   compareLibraryCards,
   cardOrderKey,
@@ -31,6 +35,13 @@ export type Data = {
   /** Optional so journals written before the dedicated JLPT module still load. */
   jlptPapers?: Doc<'jlptPapers'>[];
   jlptAttempts?: Doc<'jlptAttempts'>[];
+  /** Server counters plus journal projection; optional for older caches. */
+  quests?: QuestSnapshot[];
+  questsHasMoreHistory?: boolean;
+  stories?: StoryRecord[];
+  storyProgress?: StoryProgress[];
+  storiesHasMore?: boolean;
+  storyCachedStates?: { id: string; archived: boolean; updatedAt: number }[];
 };
 export type Pending = {
   id: string;
@@ -44,6 +55,10 @@ export type Saved = {
   queue: Pending[];
   aliases: Record<string, string>;
   lastSyncedAt: number | null;
+  storyPreferences?: {
+    furigana: boolean;
+    textSize: 'normal' | 'large' | 'extra';
+  };
 };
 export const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 export function emptyData(profile: CachedProfile): Data {
@@ -239,6 +254,7 @@ export function skippedAfterAnswer(
       p.sessionId === session?._id,
   );
   if (!session || !current) throw new Error('Card da sessão indisponível.');
+  if (session.questId) return [];
   const skipped: string[] = [];
   for (
     let position = current.position + 1;
@@ -272,7 +288,9 @@ function advance(
     if (!next)
       throw new Error('Fila de estudo incompleta. Atualize a biblioteca.');
     const card = data.cards.find((c) => c._id === next.cardId);
-    const shouldSkip = skips ? skips[0] === next._id : !card || card.archived;
+    const shouldSkip =
+      !session.questId &&
+      (skips ? skips[0] === next._id : !card || card.archived);
     if (next.presentedAt === undefined && shouldSkip) {
       skips?.shift();
       next.skipped = true;
@@ -337,9 +355,11 @@ export function applyLocal(
   data: Data,
   command: OfflineCommand,
   aliases: Saved['aliases'] = {},
+  replay = false,
 ): unknown {
   const id = (value: string) => resolveId(value, aliases);
   if (isJlptCommand(command)) return applyJlptLocal(data, command, aliases);
+  if (isStoryCommand(command)) return applyStoryLocal(data, command, replay);
   if (command.type === 'card.create') {
     const content =
       command.category === 'alphabet'
@@ -433,10 +453,14 @@ export function applyLocal(
   }
   if (command.type === 'study.start') {
     const active = data.sessions.find((s) => s.status === 'active');
-    if (active)
+    if (active && !command.questId)
       throw new Error(
         'Retome ou encerre a sessão atual antes de começar outra.',
       );
+    if (active) {
+      active.status = 'ended';
+      active.completedAt = command.createdAt;
+    }
     const session = {
       _id: id(command.localId),
       _creationTime: command.createdAt,
@@ -454,6 +478,7 @@ export function applyLocal(
       revision: 0,
       status: 'active',
       createdAt: command.createdAt,
+      ...(command.questId ? { questId: id(command.questId) } : {}),
     } as Doc<'studySessions'>;
     data.sessions.push(session);
     data.presentations.push(
@@ -500,6 +525,14 @@ export function applyLocal(
     )
       throw new Error('Encerre a sessão atual antes de voltar à anterior.');
     const rating = presentation.rating;
+    if (presentation.answeredAt !== undefined)
+      creditLocalStudy(
+        data,
+        presentation,
+        session,
+        presentation.answeredAt,
+        -1,
+      );
     data.attempts = data.attempts.filter(
       (a) => a.presentationId !== presentation._id,
     );
@@ -540,6 +573,7 @@ export function applyLocal(
     if (presentation.rating) throw new Error('Este card já foi respondido.');
     presentation.rating = command.rating;
     presentation.answeredAt = command.occurredAt;
+    creditLocalStudy(data, presentation, session, command.occurredAt, 1);
     data.attempts.push({
       _id: `local:attempt:${presentation._id}:${session.revision ?? 0}`,
       _creationTime: command.occurredAt,
@@ -569,7 +603,7 @@ export function project(saved: Saved): Data {
   const data = clone(saved.base);
   data.cards = data.cards.map(currentCard);
   for (const pending of saved.queue)
-    applyLocal(data, pending.command, saved.aliases);
+    applyLocal(data, pending.command, saved.aliases, true);
   return data;
 }
 export function localQuery(
@@ -579,6 +613,27 @@ export function localQuery(
   aliases: Saved['aliases'],
 ): unknown {
   const id = (value: unknown) => resolveId(String(value), aliases);
+  if (name === 'quests:snapshot')
+    return {
+      quests: data.quests ?? [],
+      hasMoreHistory: data.questsHasMoreHistory ?? false,
+    };
+  if (name === 'quests:get')
+    return data.quests?.find((quest) => quest.id === id(args.id)) ?? null;
+  if (name === 'quests:list')
+    return (data.quests ?? [])
+      .filter((quest) =>
+        args.status === 'completed'
+          ? quest.completedAt !== undefined
+          : args.status === 'cancelled'
+            ? quest.cancelledAt !== undefined
+            : args.status === 'open'
+              ? quest.completedAt === undefined &&
+                quest.cancelledAt === undefined
+              : true,
+      )
+      .slice()
+      .sort((a, b) => b.createdAt - a.createdAt);
   if (name.startsWith('jlpt:'))
     return queryJlptLocal(data, name, args, aliases);
   if (name.endsWith(':search'))

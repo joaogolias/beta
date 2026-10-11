@@ -13,8 +13,110 @@ import {
   studyFilterFields,
   studySnapshotValidator,
 } from './studyValidators';
+import { questFields, questStatusValidator } from './questsValidators';
+import { shikenMediaTable } from './shikenMediaValidators';
+import {
+  storyContentFields,
+  storyProgressFields,
+  storyStatusValidator,
+} from './storiesValidators';
 
 export default defineSchema({
+  shikenMedia: shikenMediaTable,
+  stories: defineTable({
+    ...storyContentFields,
+    contentVersion: v.optional(v.number()),
+    ownerId: v.id('users'),
+    clientKey: v.string(),
+    archived: v.boolean(),
+    status: storyStatusValidator,
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_ownerId_and_clientKey', ['ownerId', 'clientKey'])
+    .index('by_ownerId_and_archived_and_createdAt', [
+      'ownerId',
+      'archived',
+      'createdAt',
+    ])
+    .index('by_ownerId_and_archived_and_level_and_createdAt', [
+      'ownerId',
+      'archived',
+      'level',
+      'createdAt',
+    ])
+    .index('by_ownerId_and_archived_and_status_and_createdAt', [
+      'ownerId',
+      'archived',
+      'status',
+      'createdAt',
+    ])
+    .index('by_ownerId_and_archived_and_level_and_status_and_createdAt', [
+      'ownerId',
+      'archived',
+      'level',
+      'status',
+      'createdAt',
+    ]),
+  storyVersions: defineTable({
+    ...storyContentFields,
+    ownerId: v.id('users'),
+    storyId: v.id('stories'),
+    contentVersion: v.number(),
+    updatedAt: v.number(),
+  }).index('by_storyId_and_contentVersion', ['storyId', 'contentVersion']),
+  storyProgress: defineTable({
+    ...storyProgressFields,
+    ownerId: v.id('users'),
+    storyId: v.id('stories'),
+    questId: v.optional(v.id('quests')),
+    completed: v.boolean(),
+  })
+    .index('by_ownerId_and_storyId', ['ownerId', 'storyId'])
+    .index('by_ownerId_and_storyId_and_questId', [
+      'ownerId',
+      'storyId',
+      'questId',
+    ])
+    .index('by_ownerId_and_completed_and_updatedAt', [
+      'ownerId',
+      'completed',
+      'updatedAt',
+    ]),
+  quests: defineTable({
+    ...questFields,
+    ownerId: v.id('users'),
+    clientKey: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    cancelledAt: v.optional(v.number()),
+    completedAt: v.optional(v.number()),
+    completedCardIds: v.array(v.string()),
+    completedPaperIds: v.array(v.string()),
+    completedStoryIds: v.optional(v.array(v.string())),
+    status: questStatusValidator,
+  })
+    .index('by_ownerId_and_clientKey', ['ownerId', 'clientKey'])
+    .index('by_ownerId_and_dueAt', ['ownerId', 'dueAt'])
+    .index('by_ownerId_and_completedAt', ['ownerId', 'completedAt'])
+    .index('by_ownerId_and_createdAt', ['ownerId', 'createdAt'])
+    .index('by_ownerId_and_status_and_createdAt', [
+      'ownerId',
+      'status',
+      'createdAt',
+    ]),
+  questContributions: defineTable({
+    ownerId: v.id('users'),
+    questId: v.id('quests'),
+    kind: v.union(v.literal('study'), v.literal('shiken'), v.literal('story')),
+    sourceId: v.string(),
+    occurredAt: v.number(),
+    targetId: v.string(),
+  })
+    .index('by_questId_and_occurredAt', ['questId', 'occurredAt'])
+    .index('by_questId_and_kind_and_targetId', ['questId', 'kind', 'targetId'])
+    .index('by_ownerId_and_kind_and_sourceId', ['ownerId', 'kind', 'sourceId'])
+    .index('by_questId_and_kind_and_sourceId', ['questId', 'kind', 'sourceId']),
   streakRuns: defineTable({
     ownerId: v.id('users'),
     start: v.number(),
@@ -173,8 +275,15 @@ export default defineSchema({
       'level',
       'title',
     ]),
+  jlptAuthorshipRequests: defineTable({
+    ownerId: v.id('users'),
+    clientKey: v.string(),
+    paperId: v.id('jlptPapers'),
+    originalContent: v.string(),
+  }).index('by_ownerId_and_clientKey', ['ownerId', 'clientKey']),
   jlptAttempts: defineTable({
     ...jlptAttemptFields,
+    questId: v.optional(v.id('quests')),
     ownerId: v.id('users'),
     paperId: v.id('jlptPapers'),
   })
@@ -187,6 +296,7 @@ export default defineSchema({
     ]),
   studySessions: defineTable({
     ownerId: v.id('users'),
+    questId: v.optional(v.id('quests')),
     mode: v.union(v.literal('direct'), v.literal('adaptive')),
     order: v.union(v.literal('sorted'), v.literal('random')),
     filters: v.object(studyFilterFields),

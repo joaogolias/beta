@@ -12,6 +12,8 @@ import { fail, requireOwner } from './alphabetDomain';
 import { compareLibraryCards } from '../../shared/libraryOrder';
 import { studyRatingValidator } from './alphabetValidators';
 import { studyCardIdValidator, studyFilterFields } from './studyValidators';
+import { creditForOwner, undoStudyForOwner } from './questsDomain';
+import type { QuestSnapshot } from '../../shared/quests';
 import {
   getStudyCard,
   normalizeStudyFilters,
@@ -104,6 +106,7 @@ async function activateNext(
       fail('UNAVAILABLE', 'Não foi possível carregar a sessão.');
     const card = await getStudyCard(ctx, presentation.cardId);
     if (
+      !session.questId &&
       !presentation.presentedAt &&
       (skippedPresentationIds.has(presentation._id) ||
         (!session.offlineQueue && (!card || card.archived)))
@@ -234,6 +237,54 @@ export const start = mutation({
     return await ownedSession(ctx, ownerId, sessionId);
   },
 });
+
+/** Materialize a validated immutable queue without a catalogue search or replacement. */
+export async function createQuestSessionForOwner(
+  ctx: MutationCtx,
+  ownerId: Id<'users'>,
+  questId: Id<'quests'>,
+  queue: {
+    cardId: StudyCardId;
+    snapshot: Doc<'studyPresentations'>['snapshot'];
+  }[],
+  createdAt: number,
+) {
+  if (!queue.length || queue.length > MAX_SESSION_CARDS)
+    fail('VALIDATION', 'A sessão precisa de 1 a 100 cards.');
+  const sessionId = await ctx.db.insert('studySessions', {
+    ownerId,
+    questId,
+    mode: 'direct',
+    order: 'sorted',
+    filters: {},
+    status: 'active',
+    total: queue.length,
+    position: 0,
+    answered: 0,
+    skipped: 0,
+    correct: 0,
+    partial: 0,
+    incorrect: 0,
+    createdAt,
+    offlineQueue: true,
+  });
+  const presentationIds: Id<'studyPresentations'>[] = [];
+  for (const [position, item] of queue.entries())
+    presentationIds.push(
+      await ctx.db.insert('studyPresentations', {
+        ownerId,
+        sessionId,
+        ...item,
+        position,
+        skipped: false,
+        ...(position === 0 ? { presentedAt: createdAt } : {}),
+      }),
+    );
+  return {
+    session: await ownedSession(ctx, ownerId, sessionId),
+    presentationIds,
+  };
+}
 
 export const active = query({
   args: {},
@@ -380,6 +431,7 @@ export async function rateForOwner(
     rating: Infer<typeof studyRatingValidator>;
     skippedPresentationIds?: ReadonlySet<Id<'studyPresentations'>>;
   },
+  questChanges: QuestSnapshot[] = [],
 ) {
   const session = await ownedSession(ctx, ownerId, sessionId);
   requireRevision(session, expectedRevision);
@@ -413,6 +465,16 @@ export async function rateForOwner(
     answeredAt: now,
   });
   await saveStats(ctx, ownerId, presentation.cardId, rating, now);
+  if (session.questId)
+    questChanges.push(
+      ...(await creditForOwner(ctx, ownerId, {
+        kind: 'study',
+        sourceId: presentationId,
+        occurredAt: now,
+        questId: session.questId,
+        cardId: presentation.cardId,
+      })),
+    );
   await ctx.db.patch('studySessions', sessionId, {
     position: session.position + 1,
     answered: session.answered + 1,
@@ -444,7 +506,9 @@ export async function undoForOwner(
     sessionId,
     presentationId,
     expectedRevision,
+    occurredAt,
   }: PresentationOperation & { expectedRevision: number },
+  questChanges: QuestSnapshot[] = [],
 ) {
   const session = await ownedSession(ctx, ownerId, sessionId);
   const previous = await ownedPresentation(
@@ -496,6 +560,14 @@ export async function undoForOwner(
   if (!attempt || !stats || !totals)
     fail('CONFLICT', 'Não foi possível desfazer esta resposta.');
   const rating = previous.rating;
+  questChanges.push(
+    ...(await undoStudyForOwner(
+      ctx,
+      ownerId,
+      presentationId,
+      occurredAt ?? Date.now(),
+    )),
+  );
   await ctx.db.delete('studyAttempts', attempt._id);
   if (stats.attempts === 1) await ctx.db.delete('studyStats', stats._id);
   else {

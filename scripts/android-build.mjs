@@ -4,14 +4,19 @@ import {
   copyFileSync,
   existsSync,
   mkdirSync,
+  mkdtempSync,
   readFileSync,
   readdirSync,
+  rmSync,
   writeFileSync,
 } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { readBuildConfig } from './android-config.mjs';
+import { readAndroidEnvironment } from './android-environment.mjs';
+import { assertAndroidBundle } from './android-bundle.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const mobile = join(root, 'mobile');
@@ -40,8 +45,10 @@ try {
     throw new Error(
       'Execute o build em Linux/WSL, com Java e Android SDK instalados nesse mesmo ambiente.',
     );
-  const localEnv = join(root, '.env.android.local');
-  if (existsSync(localEnv)) process.loadEnvFile(localEnv);
+  Object.assign(
+    process.env,
+    readAndroidEnvironment({ root, args: process.argv.slice(2) }),
+  );
   const config = readBuildConfig();
   const sdk = process.env.ANDROID_HOME;
   if (!sdk || !existsSync(sdk))
@@ -89,9 +96,7 @@ try {
     readFileSync(join(output, 'output-metadata.json'), 'utf8'),
   );
   const expectedPackage =
-    config.appEnv === 'production'
-      ? 'com.babelcrux.app'
-      : 'com.babelcrux.app.dev';
+    config.appEnv === 'production' ? 'com.beta.app' : 'com.beta.app.dev';
   if (
     metadata.applicationId !== expectedPackage ||
     metadata.elements.length !== 1
@@ -116,6 +121,22 @@ try {
       'APK sem bundle JavaScript; não é instalável para uso sem Metro.',
     );
 
+  const inspection = mkdtempSync(join(tmpdir(), 'beta-apk-inspection-'));
+  try {
+    run(
+      javaBin ? join(javaBin, 'jar') : 'jar',
+      ['xf', apk, 'assets/index.android.bundle', 'assets/app.config'],
+      { cwd: inspection },
+    );
+    assertAndroidBundle(
+      readFileSync(join(inspection, 'assets/index.android.bundle')),
+      JSON.parse(readFileSync(join(inspection, 'assets/app.config'), 'utf8')),
+      process.env,
+    );
+  } finally {
+    rmSync(inspection, { recursive: true, force: true });
+  }
+
   const buildTools = join(sdk, 'build-tools');
   const apksignerVersion = readdirSync(buildTools)
     .filter((entry) => existsSync(join(buildTools, entry, 'apksigner')))
@@ -127,7 +148,7 @@ try {
   const commit = run('git', ['rev-parse', 'HEAD'], { capture: true });
   const dirty =
     run('git', ['status', '--porcelain'], { capture: true }).length > 0;
-  const name = `babel-crux-${config.appEnv}-${config.version}-${config.versionCode}-${commit.slice(0, 12)}${dirty ? '-dirty' : ''}`;
+  const name = `beta-${config.appEnv}-${config.version}-${config.versionCode}-${commit.slice(0, 12)}${dirty ? '-dirty' : ''}`;
   const destination = join(root, 'artifacts', config.appEnv, name);
   mkdirSync(destination, { recursive: true });
   const file = `${name}.apk`;

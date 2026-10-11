@@ -31,17 +31,20 @@ import { errorMessage } from '../alphabet/form';
 import { BlockPlan, styles } from './ui';
 import { downloadMedia, getCachedMedia } from './media';
 import { preparePaperMedia } from './mediaPolicy';
+import { RockTexture } from '../brand/RockTexture';
 
 export function JlptHomeScreen({
+  initialLevel = 'N5',
   onCreate,
   onOpen,
   onAttempt,
 }: {
+  initialLevel?: JlptLevel;
   onCreate: () => void;
   onOpen: (id: Id<'jlptPapers'>) => void;
-  onAttempt: (id: Id<'jlptAttempts'>) => void;
+  onAttempt: (id: Id<'jlptAttempts'>, questId?: Id<'quests'>) => void;
 }) {
-  const [level, setLevel] = useState<JlptLevel>('N5');
+  const [level, setLevel] = useState<JlptLevel>(initialLevel);
   const [query, setQuery] = useState('');
   const [archived, setArchived] = useState(false);
   const papers = usePaginatedQuery(
@@ -69,6 +72,7 @@ export function JlptHomeScreen({
       </View>
       {active && (
         <View style={styles.hero}>
+          <RockTexture tone="dark" />
           <Text style={styles.heroCopy}>SEU SIMULADO ESTÁ EM ANDAMENTO</Text>
           <Text style={styles.heroTitle}>{active.snapshot.title}</Text>
           <Text style={styles.heroCopy}>
@@ -76,7 +80,7 @@ export function JlptHomeScreen({
           </Text>
           <Action
             label="Continuar simulado"
-            onPress={() => onAttempt(active._id)}
+            onPress={() => onAttempt(active._id, active.questId)}
           />
         </View>
       )}
@@ -95,6 +99,7 @@ export function JlptHomeScreen({
             onPress={() => setLevel(item)}
             style={[styles.levelTile, item === level && styles.activeLevel]}
           >
+            <RockTexture tone={item === level ? 'dark' : 'light'} />
             <Text style={[styles.levelLabel, item === level && styles.white]}>
               {item}
             </Text>
@@ -227,7 +232,7 @@ export function JlptPaperScreen({
 }: {
   paperId: Id<'jlptPapers'>;
   onEdit: () => void;
-  onAttempt: (id: Id<'jlptAttempts'>) => void;
+  onAttempt: (id: Id<'jlptAttempts'>, questId?: Id<'quests'>) => void;
 }) {
   const paper = useQuery(api.jlpt.get, { id: paperId });
   const active = useQuery(api.jlpt.active, {});
@@ -240,7 +245,14 @@ export function JlptPaperScreen({
   const [prepared, setPrepared] = useState(false);
   const [downloadStatus, setDownloadStatus] = useState('');
   if (paper === undefined) return <Loading label="Abrindo o simulado…" />;
-  if (!paper) return <Notice error>Este simulado não está disponível.</Notice>;
+  if (!paper)
+    return (
+      <Notice error>
+        Este simulado não está disponível neste aparelho. Atualize pelo
+        indicador de sincronização para buscar as alterações. Se ele continuar
+        indisponível, volte ao Shiken para escolher outro simulado.
+      </Notice>
+    );
   let incomplete: string | null = null;
   try {
     validateReady(paper);
@@ -271,6 +283,7 @@ export function JlptPaperScreen({
   return (
     <View style={styles.screen}>
       <View style={styles.hero}>
+        <RockTexture tone="dark" />
         <Text style={styles.heroCopy}>SIMULADO {paper.level}</Text>
         <Text accessibilityRole="header" style={styles.heroTitle}>
           {paper.title}
@@ -360,7 +373,7 @@ export function JlptPaperScreen({
           </Notice>
           <Action
             label="Continuar meu simulado"
-            onPress={() => onAttempt(active._id)}
+            onPress={() => onAttempt(active._id, active.questId)}
           />
         </>
       ) : (

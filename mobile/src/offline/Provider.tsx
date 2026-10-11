@@ -1,3 +1,4 @@
+import { AppModal } from '../environment/AppEnvironment';
 import {
   createContext,
   useCallback,
@@ -15,13 +16,12 @@ import * as Network from 'expo-network';
 import {
   ActivityIndicator,
   AppState,
-  Modal,
   Pressable,
   Text,
   View,
 } from 'react-native';
 import { api } from '../../../backend/convex/_generated/api';
-import type { Doc } from '../../../backend/convex/_generated/dataModel';
+import type { Doc, Id } from '../../../backend/convex/_generated/dataModel';
 import { OfflineEngine } from './engine';
 import { clone, type Card, type CachedProfile, type Data } from './model';
 import { offlinePreference, persistence } from './storage';
@@ -38,10 +38,46 @@ export type OfflineContextValue = {
   setOfflineMode: (enabled: boolean) => Promise<void>;
   assertCanEditLibrary: () => void;
   refresh: () => Promise<void>;
+  flushPending: () => Promise<void>;
   retry: () => void;
   resolveConflict: (choice: 'device' | 'cloud') => Promise<void>;
 };
 export const OfflineContext = createContext<OfflineContextValue | null>(null);
+type SyncRequest = { full?: boolean; manual?: boolean };
+type SyncJob = {
+  fullRequested: boolean;
+  pushingRequested: boolean;
+  downloading: boolean;
+  manual: boolean;
+  promise: Promise<void>;
+};
+const syncTimeoutMessage =
+  'A sincronização demorou mais que o esperado. Seu estudo continua salvo; tente novamente.';
+function syncDeadline(canConnect: () => boolean) {
+  let expired = false;
+  let rejectTimeout!: (error: Error) => void;
+  const cancellation = new Promise<never>((_, reject) => {
+    rejectTimeout = reject;
+  });
+  void cancellation.catch(() => {});
+  const timer = setTimeout(() => {
+    expired = true;
+    rejectTimeout(new Error(syncTimeoutMessage));
+  }, 20_000);
+  const connected = () => !expired && canConnect();
+  return {
+    connected,
+    expired: () => expired,
+    dispose: () => clearTimeout(timer),
+    request<T>(start: () => Promise<T>): Promise<T> {
+      if (!connected())
+        return Promise.reject(
+          new Error('Sincronização pausada. Seu estudo continua salvo.'),
+        );
+      return Promise.race([start(), cancellation]);
+    },
+  };
+}
 export function useOfflineContext() {
   const context = useContext(OfflineContext);
   if (!context)
@@ -86,8 +122,12 @@ export function OfflineProvider({
     profileRef.current = profile;
   }, [profile]);
   const activeRef = useRef(true);
-  const syncRef = useRef<(manual?: boolean) => Promise<void>>(async () => {});
-  const inFlightSync = useRef<Promise<void> | null>(null);
+  const foregroundRef = useRef(AppState.currentState !== 'background');
+  const lifecycleRefreshPending = useRef(true);
+  const syncRef = useRef<(request?: SyncRequest) => Promise<void>>(
+    async () => {},
+  );
+  const inFlightSync = useRef<SyncJob | null>(null);
   const [mode] = useState(
     // The constructor stores these callbacks without invoking them during render.
     // eslint-disable-next-line react-hooks/refs
@@ -95,8 +135,8 @@ export function OfflineProvider({
       new OfflineMode({
         ...offlinePreference(accountKey),
         promptMemory: promptMemoryFor(accountKey),
-        canConnect: () => onlineRef.current,
-        synchronize: () => syncRef.current(true),
+        canConnect: () => activeRef.current && onlineRef.current,
+        synchronize: () => syncRef.current({ full: true, manual: true }),
       }),
   );
   const modeState = useSyncExternalStore(
@@ -104,7 +144,11 @@ export function OfflineProvider({
     mode.getSnapshot,
     mode.getSnapshot,
   );
-  async function pull(connected = () => onlineRef.current): Promise<Data> {
+  async function pull(
+    connected = () => activeRef.current && onlineRef.current,
+    query: typeof client.query = (reference, ...args) =>
+      client.query(reference, ...args),
+  ): Promise<Data> {
     const assertDownload = () => {
       if (!connected())
         throw new Error(
@@ -112,7 +156,7 @@ export function OfflineProvider({
         );
     };
     assertDownload();
-    const remote = await client.query(api.offline.state, {});
+    const remote = await query(api.offline.state, {});
     if (!remote.owner)
       throw new Error(
         'Conecte novamente para atualizar os dados da sua conta.',
@@ -132,7 +176,7 @@ export function OfflineProvider({
           page: Data['attempts'];
           isDone: boolean;
           continueCursor: string;
-        } = await client.query(api.offline.recentAttempts, {
+        } = await query(api.offline.recentAttempts, {
           paginationOpts: { numItems: 100 - attempts.length, cursor },
         });
         attempts.push(...page.page);
@@ -161,12 +205,12 @@ export function OfflineProvider({
             continueCursor: string;
           } =
             category === 'alphabet'
-              ? await client.query(api.alphabet.search, args)
+              ? await query(api.alphabet.search, args)
               : category === 'vocabulary'
-                ? await client.query(api.vocabulary.search, args)
+                ? await query(api.vocabulary.search, args)
                 : category === 'grammar'
-                  ? await client.query(api.grammar.search, args)
-                  : await client.query(api.exams.search, args);
+                  ? await query(api.grammar.search, args)
+                  : await query(api.exams.search, args);
           cards.push(...page.page);
           if (cards.length > 3000)
             throw new Error(
@@ -186,7 +230,7 @@ export function OfflineProvider({
           page: Doc<'jlptPapers'>[];
           isDone: boolean;
           continueCursor: string;
-        } = await client.query(api.jlpt.search, {
+        } = await query(api.jlpt.search, {
           archived,
           paginationOpts: { numItems: 25, cursor },
         });
@@ -211,7 +255,7 @@ export function OfflineProvider({
         page: Doc<'jlptAttempts'>[];
         isDone: boolean;
         continueCursor: string;
-      } = await client.query(api.jlpt.history, {
+      } = await query(api.jlpt.history, {
         paginationOpts: {
           numItems: Math.min(25, 100 - jlptAttempts.length),
           cursor: attemptCursor,
@@ -226,12 +270,23 @@ export function OfflineProvider({
       attemptCursor = page.continueCursor;
     } while (attemptCursor);
     assertDownload();
-    const activeAttempt = await client.query(api.jlpt.active, {});
+    const activeAttempt = await query(api.jlpt.active, {});
     if (
       activeAttempt &&
       !jlptAttempts.some((attempt) => attempt._id === activeAttempt._id)
     )
       jlptAttempts.push(activeAttempt);
+    assertDownload();
+    const stories = await query(api.stories.offlineSnapshot, {
+      cachedIds: [
+        ...new Set(
+          (engine.getSnapshot().data?.stories ?? []).map(
+            (story) => story.id as Id<'stories'>,
+          ),
+        ),
+      ].slice(0, 100),
+    });
+    assertDownload();
     return {
       profile: remote.owner,
       cards,
@@ -241,72 +296,113 @@ export function OfflineProvider({
       presentations: remote.presentations,
       jlptPapers,
       jlptAttempts,
+      quests: remote.quests ?? [],
+      questsHasMoreHistory: remote.questsHasMoreHistory ?? false,
+      stories: stories.stories,
+      storyProgress: stories.storyProgress,
+      storiesHasMore: stories.hasMore,
+      storyCachedStates: stories.cachedStates,
     };
   }
   const pullRef = useRef(pull);
   useLayoutEffect(() => {
     pullRef.current = pull;
   });
-  const synchronize = async (manual = false) => {
-    const connected = () =>
-      onlineRef.current && activeRef.current && mode.canSynchronize(manual);
-    if (!connected()) {
+  const synchronize = async ({
+    full = false,
+    manual = false,
+  }: SyncRequest = {}) => {
+    const canStart = () =>
+      activeRef.current && onlineRef.current && mode.canSynchronize(manual);
+    if (!canStart()) {
       if (manual)
         throw new Error('Conecte-se à internet para sincronizar seus estudos.');
       return;
     }
-    // A user-requested exit must wait for an earlier sync, rather than treating
-    // the engine's "already working" no-op as successful synchronization.
-    const previous = inFlightSync.current;
-    const run = async () => {
-      if (previous) await previous;
-      if (!connected()) return;
-      await engine.synchronize(
-        (operationId, command) =>
-          client.mutation(api.offline.apply, { operationId, command }),
-        () => pullRef.current(connected),
-        connected,
-      );
-    };
-    if (previous && !manual) return previous;
-    const task = run();
-    inFlightSync.current = task;
-    void task
-      .finally(() => {
-        if (inFlightSync.current === task) inFlightSync.current = null;
-      })
-      .catch(() => {});
+    const pending = engine.getSnapshot().status.pending > 0;
+    let job = inFlightSync.current;
+    if (job) {
+      // Join the same download. If only the journal is being sent, upgrade it
+      // to one full refresh after its ACKs, without a second concurrent worker.
+      if (full && !job.downloading) job.fullRequested = true;
+      if (pending) job.pushingRequested = true;
+      job.manual ||= manual;
+    } else {
+      if (!full && !pending) return;
+      job = {
+        fullRequested: full,
+        pushingRequested: pending,
+        downloading: false,
+        manual,
+        promise: Promise.resolve(),
+      };
+      const currentJob = job;
+      const canUseNetwork = () =>
+        activeRef.current &&
+        onlineRef.current &&
+        mode.canSynchronize(currentJob.manual);
+      inFlightSync.current = currentJob;
+      currentJob.promise = (async () => {
+        const deadline = syncDeadline(canUseNetwork);
+        const { connected, request } = deadline;
+        const query: typeof client.query = (reference, ...args) =>
+          request(() => client.query(reference, ...args));
+        try {
+          while (
+            connected() &&
+            (currentJob.fullRequested || currentJob.pushingRequested)
+          ) {
+            const download = currentJob.fullRequested;
+            currentJob.fullRequested = false;
+            currentJob.pushingRequested = false;
+            currentJob.downloading = download;
+            const send: Parameters<OfflineEngine['synchronizePending']>[0] = (
+              operationId,
+              command,
+            ) =>
+              request(() =>
+                client.mutation(api.offline.apply, { operationId, command }),
+              );
+            const refreshed = download
+              ? await engine.synchronize(
+                  send,
+                  () => pullRef.current(connected, query),
+                  connected,
+                )
+              : await engine.synchronizePending(send, connected);
+            currentJob.downloading = false;
+            if (deadline.expired()) {
+              if (canUseNetwork()) engine.reportSyncError(syncTimeoutMessage);
+              break;
+            }
+            if (refreshed) lifecycleRefreshPending.current = false;
+            const status = engine.getSnapshot().status;
+            if (status.error || status.conflict) break;
+            // A local write invalidates a downloaded study snapshot. Finish
+            // this existing full-refresh intent after draining those writes;
+            // ordinary answer ACKs never create a new full-refresh intent.
+            if (download && !refreshed && status.pending)
+              currentJob.fullRequested = true;
+            currentJob.pushingRequested = status.pending > 0;
+          }
+        } finally {
+          deadline.dispose();
+          if (inFlightSync.current === currentJob) inFlightSync.current = null;
+        }
+      })();
+    }
+    const task = job.promise;
     if (!manual) return task;
-    let timeout: ReturnType<typeof setTimeout> | undefined;
-    try {
-      await Promise.race([
-        task,
-        new Promise<never>((_, reject) => {
-          timeout = setTimeout(
-            () =>
-              reject(
-                new Error(
-                  'A sincronização demorou mais que o esperado. Seu estudo continua salvo; tente novamente.',
-                ),
-              ),
-            20_000,
-          );
-        }),
-      ]);
-      const status = engine.getSnapshot().status;
-      if (!connected())
-        throw new Error(
-          'A conexão caiu. Seus estudos continuam neste aparelho.',
-        );
-      if (status.error || status.conflict || status.pending) {
-        throw new Error(
-          status.error ??
-            status.conflict?.message ??
-            'Ainda há estudos pendentes de sincronização.',
-        );
-      }
-    } finally {
-      if (timeout) clearTimeout(timeout);
+    await task;
+    const status = engine.getSnapshot().status;
+    if (!canStart())
+      throw new Error('A conexão caiu. Seus estudos continuam neste aparelho.');
+    if (status.error || status.conflict || status.pending) {
+      throw new Error(
+        status.error ??
+          status.conflict?.message ??
+          'Ainda há estudos pendentes de sincronização.',
+      );
     }
   };
   useLayoutEffect(() => {
@@ -315,7 +411,11 @@ export function OfflineProvider({
   const retry = useCallback(() => {
     void syncRef.current().catch(() => {});
   }, []);
-  const refresh = useCallback(() => syncRef.current(true), []);
+  const refresh = useCallback(
+    () => syncRef.current({ full: true, manual: true }),
+    [],
+  );
+  const flushPending = useCallback(() => syncRef.current({ manual: true }), []);
   const setOfflineMode = useCallback(
     (enabled: boolean) => mode.setOfflineMode(enabled),
     [mode],
@@ -323,6 +423,7 @@ export function OfflineProvider({
   const assertCanEditLibrary = useCallback(() => {
     const current = mode.getSnapshot();
     if (
+      !activeRef.current ||
       !onlineRef.current ||
       !current.ready ||
       current.offlineMode ||
@@ -335,25 +436,44 @@ export function OfflineProvider({
   }, [mode]);
   const resolveConflict = useCallback(
     async (choice: 'device' | 'cloud') => {
-      if (!onlineRef.current)
+      if (!activeRef.current || !onlineRef.current)
         throw new Error('Conecte para resolver esta pendência.');
-      await engine.resolveConflict(choice, () => pullRef.current());
+      const offlineMode = mode.getSnapshot().offlineMode;
+      const connected = () =>
+        activeRef.current &&
+        onlineRef.current &&
+        mode.getSnapshot().offlineMode === offlineMode &&
+        !mode.getSnapshot().switchingMode;
+      const deadline = syncDeadline(connected);
+      const query: typeof client.query = (reference, ...args) =>
+        deadline.request(() => client.query(reference, ...args));
+      try {
+        await engine.resolveConflict(
+          choice,
+          () => pullRef.current(deadline.connected, query),
+          deadline.connected,
+        );
+      } catch (error) {
+        if (deadline.expired() && connected())
+          engine.reportSyncError(syncTimeoutMessage);
+        throw error;
+      } finally {
+        deadline.dispose();
+      }
       if (mode.getSnapshot().offlineMode) await mode.setOfflineMode(false);
-      else await syncRef.current(true);
+      else await syncRef.current({ full: true, manual: true });
     },
-    [engine, mode],
+    [client, engine, mode],
   );
   useEffect(() => {
     activeRef.current = true;
     engine.resume();
-    void Promise.all([engine.load(profileRef.current), mode.load()]).then(() =>
-      retry(),
-    );
+    void Promise.all([engine.load(profileRef.current), mode.load()]);
     return () => {
       activeRef.current = false;
       engine.stop();
     };
-  }, [engine, mode, retry]);
+  }, [engine, mode]);
   useEffect(() => {
     if (
       profile &&
@@ -367,7 +487,30 @@ export function OfflineProvider({
       online &&
       state.status.ready &&
       modeState.ready &&
-      !modeState.offlineMode
+      !modeState.offlineMode &&
+      !modeState.switchingMode &&
+      foregroundRef.current
+    ) {
+      if (lifecycleRefreshPending.current)
+        void syncRef.current({ full: true }).catch(() => {});
+    }
+  }, [
+    online,
+    state.status.ready,
+    modeState.ready,
+    modeState.offlineMode,
+    modeState.switchingMode,
+    retry,
+  ]);
+  useEffect(() => {
+    if (
+      online &&
+      state.status.ready &&
+      state.status.pending &&
+      modeState.ready &&
+      !modeState.offlineMode &&
+      !modeState.switchingMode &&
+      foregroundRef.current
     )
       retry();
   }, [
@@ -376,20 +519,22 @@ export function OfflineProvider({
     state.status.pending,
     modeState.ready,
     modeState.offlineMode,
+    modeState.switchingMode,
     retry,
   ]);
   useEffect(() => {
     const listener = AppState.addEventListener('change', (value) => {
-      activeRef.current = value === 'active';
-      if (value === 'active') retry();
+      // Background execution is best effort. Do not stop the just-requested
+      // exit refresh; only unmount/signout or offline mode cancels its next page.
+      if (value !== 'active' && value !== 'background') return;
+      const foreground = value === 'active';
+      if (foregroundRef.current === foreground) return;
+      foregroundRef.current = foreground;
+      lifecycleRefreshPending.current = true;
+      void syncRef.current({ full: true }).catch(() => {});
     });
     return () => listener.remove();
   }, [retry]);
-  useEffect(() => {
-    if (!modeState.ready || modeState.offlineMode) return;
-    const timer = setInterval(retry, 30_000);
-    return () => clearInterval(timer);
-  }, [modeState.ready, modeState.offlineMode, retry]);
   useEffect(() => {
     if (!modeState.ready || modeState.offlineMode || modeState.promptDismissed)
       return;
@@ -435,6 +580,7 @@ export function OfflineProvider({
     setOfflineMode,
     assertCanEditLibrary,
     refresh,
+    flushPending,
     retry,
     resolveConflict,
   };
@@ -449,7 +595,7 @@ export function OfflineProvider({
           backgroundColor: palette.background,
         }}
       >
-        <ActivityIndicator color={palette.blue} />
+        <ActivityIndicator color={palette.primary} />
         <Text>
           {state.status.error ??
             modeState.modeError ??
@@ -462,7 +608,7 @@ export function OfflineProvider({
               void Promise.all([
                 engine.load(profileRef.current),
                 mode.load(),
-              ]).then(() => retry());
+              ]).then(() => syncRef.current({ full: true }));
             }}
           >
             <Text>Tentar de novo</Text>
@@ -473,7 +619,7 @@ export function OfflineProvider({
   return (
     <OfflineContext.Provider value={context}>
       {children}
-      <Modal
+      <AppModal
         visible={modeState.promptVisible}
         transparent
         animationType="fade"
@@ -482,7 +628,7 @@ export function OfflineProvider({
         <View
           style={{
             flex: 1,
-            backgroundColor: 'rgba(10,20,40,0.55)',
+            backgroundColor: palette.scrim,
             justifyContent: 'center',
             padding: 24,
           }}
@@ -527,7 +673,7 @@ export function OfflineProvider({
                 minHeight: 48,
                 padding: 14,
                 borderRadius: 14,
-                backgroundColor: palette.blue,
+                backgroundColor: palette.primary,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
@@ -546,7 +692,7 @@ export function OfflineProvider({
                 justifyContent: 'center',
               }}
             >
-              <Text style={{ color: palette.blue, fontWeight: '700' }}>
+              <Text style={{ color: palette.primary, fontWeight: '700' }}>
                 Agora não
               </Text>
             </Pressable>
@@ -559,7 +705,7 @@ export function OfflineProvider({
             </Text>
           </View>
         </View>
-      </Modal>
+      </AppModal>
     </OfflineContext.Provider>
   );
 }

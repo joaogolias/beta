@@ -1,4 +1,4 @@
-# Babel Crux
+# beta
 
 Biblioteca pessoal de estudo de idiomas por meio de cards de memorização.
 O conteúdo inicial é japonês, com classificação por nível JLPT.

@@ -58,7 +58,7 @@ function run(name, args) {
 
 function validateDataset() {
   ensure(
-    data.seedId === 'babel-crux:dev:jlpt-n5-authorial-v1',
+    data.seedId === 'beta:dev:jlpt-n5-authorial-v1',
     'Unexpected seed identifier.',
   );
   ensure(
@@ -245,10 +245,13 @@ async function apply() {
     : { deployment, seedId: data.seedId, ownerId: before.ownerId, files: [] };
   ensure(
     uploads.deployment === deployment &&
-      uploads.seedId === data.seedId &&
+      typeof uploads.seedId === 'string' &&
+      uploads.seedId.endsWith(':dev:jlpt-n5-authorial-v1') &&
       uploads.ownerId === before.ownerId,
     'Upload manifest belongs to a different seed or user.',
   );
+  // Keep uploaded audio across brand changes; deployment and owner stay exact.
+  uploads.seedId = data.seedId;
   // Resume manifests created before verifying the live API's checksum encoding.
   for (const file of uploads.files)
     if (/^[a-f0-9]{64}$/.test(file.sha256))

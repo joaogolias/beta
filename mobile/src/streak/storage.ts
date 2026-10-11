@@ -5,7 +5,7 @@ type KeyValue = {
   setItem: (key: string, value: string) => Promise<void>;
 };
 export const streakStorageKey = (accountKey: string) =>
-  `babel-crux:streak:v1:${encodeURIComponent(accountKey)}`;
+  `beta:streak:v1:${encodeURIComponent(accountKey)}`;
 
 function validCache(value: unknown, accountKey: string): value is SavedStreak {
   if (!value || typeof value !== 'object') return false;

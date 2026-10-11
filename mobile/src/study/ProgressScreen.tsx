@@ -17,6 +17,7 @@ import {
 } from '../alphabet/ui';
 import { CategoryPicker } from '../vocabulary/CategoryPicker';
 import { palette } from '../theme';
+import { RockTexture } from '../brand/RockTexture';
 
 const categories = {
   all: 'Todos os cards',
@@ -127,6 +128,7 @@ export function ProgressSummary({
   return (
     <>
       <View style={styles.hero}>
+        <RockTexture tone="dark" />
         <Text style={styles.heroEyebrow}>
           {archived ? 'MEMÓRIAS GUARDADAS' : 'SEU JAPONÊS EM MOVIMENTO'}
         </Text>
@@ -169,19 +171,19 @@ export function ProgressSummary({
             label="Acertei"
             count={stats.correct}
             total={stats.attempts}
-            tone={palette.blue}
+            tone={palette.primary}
           />
           <Outcome
             label="Acertei parcialmente"
             count={stats.partial}
             total={stats.attempts}
-            tone={palette.muted}
+            tone={palette.tertiary}
           />
           <Outcome
             label="Errei"
             count={stats.incorrect}
             total={stats.attempts}
-            tone={palette.ink}
+            tone={palette.error}
           />
           <View style={styles.rates}>
             <View style={styles.rate}>
@@ -259,7 +261,7 @@ const styles = StyleSheet.create({
   },
   heading: { gap: 8, paddingTop: 5 },
   eyebrow: {
-    color: palette.blue,
+    color: palette.primary,
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1.9,
@@ -289,11 +291,12 @@ const styles = StyleSheet.create({
   filterSummary: { flex: 1, gap: 5 },
   filterCategory: { color: palette.ink, fontSize: 17, fontWeight: '700' },
   filterDetail: { color: palette.muted, fontSize: 12, lineHeight: 18 },
-  filterAction: { color: palette.blue, fontSize: 12, fontWeight: '700' },
+  filterAction: { color: palette.primary, fontSize: 12, fontWeight: '700' },
   filterControls: { padding: 18, paddingTop: 0, gap: 16 },
   hero: {
-    backgroundColor: palette.blue,
+    backgroundColor: palette.primary,
     borderRadius: 28,
+    overflow: 'hidden',
     padding: 28,
     gap: 9,
   },
@@ -320,7 +323,7 @@ const styles = StyleSheet.create({
   heroDescription: { color: palette.surface, fontSize: 14, lineHeight: 22 },
   heroDivider: {
     height: 1,
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: palette.onDarkLine,
     marginVertical: 10,
   },
   results: { gap: 20 },
@@ -354,9 +357,9 @@ const styles = StyleSheet.create({
     minWidth: 120,
     padding: 18,
     borderRadius: 20,
-    backgroundColor: palette.mountainSoft,
+    backgroundColor: palette.stoneSoft,
     gap: 7,
   },
-  rateValue: { color: palette.blueDeep, fontSize: 28, fontWeight: '700' },
+  rateValue: { color: palette.primaryDeep, fontSize: 28, fontWeight: '700' },
   rateLabel: { color: palette.muted, fontSize: 12, lineHeight: 18 },
 });

@@ -1,6 +1,7 @@
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { palette } from '../theme';
 import { IbexMascot } from '../brand/IbexMascot';
+import { RockTexture } from '../brand/RockTexture';
 
 export function AuthWelcome({ showHero }: { showHero: boolean }) {
   const { height, width, fontScale } = useWindowDimensions();
@@ -24,6 +25,7 @@ export function AuthWelcome({ showHero }: { showHero: boolean }) {
 
       {showHero && (
         <View style={[styles.hero, compact && styles.heroCompact]}>
+          <RockTexture tone="dark" />
           <View style={styles.heroTopline}>
             <View style={styles.heroDot} />
             <Text style={styles.heroEyebrow}>UM POUCO, TODO DIA.</Text>
@@ -83,9 +85,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 1.2,
   },
-  languageArrow: { color: palette.blue, fontSize: 22 },
+  languageArrow: { color: palette.primary, fontSize: 22 },
   hero: {
-    backgroundColor: palette.blue,
+    backgroundColor: palette.primary,
     borderRadius: 28,
     padding: 24,
     minHeight: 286,
@@ -118,7 +120,7 @@ const styles = StyleSheet.create({
   headlineCompact: { fontSize: 35, lineHeight: 37 },
   headlineWithArt: { maxWidth: '65%' },
   heroBottom: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  heroRule: { height: 1, width: 20, backgroundColor: '#AFC3FF' },
+  heroRule: { height: 1, width: 20, backgroundColor: palette.onForestMuted },
   heroCaption: { color: palette.surface, fontSize: 11, flexShrink: 1 },
   artwork: {
     position: 'absolute',
@@ -134,7 +136,7 @@ const styles = StyleSheet.create({
     height: 260,
     borderRadius: 130,
     borderWidth: 1,
-    borderColor: '#5681FF',
+    borderColor: palette.onDarkLine,
     top: -13,
     left: -32,
   },
@@ -144,7 +146,7 @@ const styles = StyleSheet.create({
     height: 192,
     borderRadius: 96,
     borderWidth: 1,
-    borderColor: '#5681FF',
+    borderColor: palette.onDarkLine,
     top: 20,
     left: 2,
   },

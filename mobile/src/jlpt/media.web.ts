@@ -8,7 +8,7 @@ import {
 } from './mediaPolicy';
 export type { CachedMedia } from './mediaPolicy';
 
-const CACHE_NAME = 'babel-crux-jlpt-media-v1';
+const CACHE_NAME = 'beta-jlpt-media-v1';
 const objects = new Map<string, CachedMedia>();
 const downloads = new Map<string, Promise<CachedMedia>>();
 

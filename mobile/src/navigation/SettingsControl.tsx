@@ -1,7 +1,7 @@
+import { AppModal } from '../environment/AppEnvironment';
 import { useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -61,7 +61,7 @@ export function SettingsControl() {
         </Text>
         {offlineMode && <View style={styles.offlineDot} />}
       </Pressable>
-      <Modal
+      <AppModal
         visible={visible}
         transparent
         animationType="fade"
@@ -89,7 +89,7 @@ export function SettingsControl() {
                   <Text style={styles.note}>
                     {offlineMode
                       ? 'Estude no seu ritmo, sem conexão.'
-                      : 'Sua biblioteca acompanha as novidades online.'}
+                      : 'Atualize seus catálogos ao abrir o app ou puxar a lista para baixo.'}
                   </Text>
                 </View>
                 <Switch
@@ -101,7 +101,7 @@ export function SettingsControl() {
                   onValueChange={(enabled) => {
                     void changeMode(enabled);
                   }}
-                  trackColor={{ false: palette.line, true: palette.blue }}
+                  trackColor={{ false: palette.line, true: palette.primary }}
                   thumbColor={palette.surface}
                 />
               </View>
@@ -136,7 +136,7 @@ export function SettingsControl() {
               {conflict && (
                 <Text style={styles.error} accessibilityRole="alert">
                   Há uma alteração para revisar na sincronização. Feche as
-                  configurações e escolha como resolver no aviso da tela.
+                  configurações e toque no indicador de sincronização no topo.
                 </Text>
               )}
               {(error || modeError) && (
@@ -174,12 +174,12 @@ export function SettingsControl() {
                 </>
               )}
               {!offlineMode && busy && (
-                <ActivityIndicator color={palette.blue} />
+                <ActivityIndicator color={palette.primary} />
               )}
             </ScrollView>
           </View>
         </SafeAreaView>
-      </Modal>
+      </AppModal>
     </>
   );
 }
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: palette.line,
   },
-  gearIcon: { fontSize: 24, lineHeight: 30, color: palette.blueDeep },
+  gearIcon: { fontSize: 24, lineHeight: 30, color: palette.primaryDeep },
   offlineDot: {
     position: 'absolute',
     top: 7,
@@ -203,14 +203,14 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: palette.blue,
+    backgroundColor: palette.primary,
   },
   pressed: { opacity: 0.7 },
   backdrop: {
     flex: 1,
     padding: 20,
     justifyContent: 'center',
-    backgroundColor: 'rgba(17,30,60,0.38)',
+    backgroundColor: palette.scrim,
   },
   sheet: {
     width: '100%',
@@ -250,11 +250,11 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 16,
     gap: 8,
-    backgroundColor: palette.blueSoft,
+    backgroundColor: palette.primarySoft,
   },
-  statusTitle: { color: palette.blueDeep, fontWeight: '700', fontSize: 15 },
+  statusTitle: { color: palette.primaryDeep, fontWeight: '700', fontSize: 15 },
   pending: {
-    color: palette.blueDeep,
+    color: palette.primaryDeep,
     fontSize: 13,
     fontWeight: '600',
     lineHeight: 20,
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   error: { color: palette.error, fontSize: 13, lineHeight: 20 },
   primary: {
     minHeight: 50,
-    backgroundColor: palette.blue,
+    backgroundColor: palette.primary,
     borderRadius: 16,
     padding: 14,
     flexDirection: 'row',

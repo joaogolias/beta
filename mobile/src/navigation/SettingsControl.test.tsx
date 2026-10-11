@@ -3,6 +3,7 @@ import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { OfflineMode } from '../offline/mode';
 import { SettingsControl } from './SettingsControl';
+import { AppEnvironment } from '../environment/AppEnvironment';
 
 vi.mock('react-native', () => ({
   ActivityIndicator: 'ActivityIndicator',
@@ -16,6 +17,7 @@ vi.mock('react-native', () => ({
   View: 'View',
 }));
 vi.mock('react-native-safe-area-context', () => ({
+  SafeAreaProvider: 'SafeAreaProvider',
   SafeAreaView: 'SafeAreaView',
 }));
 vi.mock('../offline/hooks', () => ({
@@ -43,7 +45,7 @@ afterEach(async () => {
   if (tree) await act(async () => tree.unmount());
   vi.unstubAllGlobals();
 });
-async function mount(offline = false) {
+async function mount(offline = false, environment = 'production') {
   mode = new OfflineMode({
     read: async () => offline,
     write,
@@ -53,7 +55,11 @@ async function mount(offline = false) {
   });
   await mode.load();
   await act(async () => {
-    tree = create(<SettingsControl />);
+    tree = create(
+      <AppEnvironment environment={environment}>
+        <SettingsControl />
+      </AppEnvironment>,
+    );
   });
   await act(async () => {
     tree.root
@@ -131,3 +137,22 @@ test('failed synchronization shows the reason and preserves the offline choice f
   });
   expect(toggle().props.value).toBe(false);
 });
+
+test.each(['development', 'production'])(
+  '%s keeps the environment tag inside the settings modal only when appropriate',
+  async (environment) => {
+    await mount(false, environment);
+    const modal = tree.root.findByType('Modal' as never);
+    expect(
+      modal.findAllByProps({
+        accessibilityLabel: 'Ambiente de desenvolvimento',
+      }),
+    ).toHaveLength(environment === 'development' ? 1 : 0);
+    await act(async () => {
+      tree.root
+        .findByProps({ accessibilityLabel: 'Fechar configurações' })
+        .props.onPress();
+    });
+    expect(tree.root.findAllByType('Modal' as never)).toHaveLength(0);
+  },
+);

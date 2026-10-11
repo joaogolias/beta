@@ -3,7 +3,7 @@ Reference: mobile/assets/brand/betinha-welcome.png (style reference only).
 Output: mobile/assets/brand/mountain-icon-background.png.
 
 Use case: stylized-concept
-Asset type: Full-bleed background texture layer for the Babel Crux app launcher icon, square 1024x1024.
+Asset type: Full-bleed background texture layer for the beta app launcher icon, square 1024x1024.
 Input image 1 is a STYLE reference only: reuse the illustrated angular, faceted mountain-rock language, not the animal or landscape.
 Primary request: create an elegant mountain-gray gradient with a subtle illustrated granite/slate texture. Broad angular stone facets flow diagonally like a close-up mountain rock face. Light cool gray at upper left (#C5CDD3), medium mountain gray around the center (#78848E), deeper slate gray at lower right (#424E5A). Smooth graded shading within large planes and extremely fine mineral grain, restrained contrast, high polish.
 Composition: texture fills the entire square edge to edge, with quiet central space because a tan-and-cream ibex portrait will be placed there later. The faceting should remain visible toward the outer edges at launcher-icon size. Grays should read as stone, with only a very slight cool tint, no saturated blue.

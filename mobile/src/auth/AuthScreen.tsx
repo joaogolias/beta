@@ -579,7 +579,7 @@ function Action({
             provider
               ? palette.ink
               : secondary
-                ? palette.mountainDeep
+                ? palette.stoneDeep
                 : palette.surface
           }
         />
@@ -625,7 +625,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   eyebrow: {
-    color: palette.blue,
+    color: palette.primary,
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1.8,
@@ -658,8 +658,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   inputFocused: {
-    borderColor: palette.blue,
-    backgroundColor: palette.blueSoft,
+    borderColor: palette.primary,
+    backgroundColor: palette.primarySoft,
   },
   input: {
     minHeight: 50,
@@ -678,10 +678,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  revealLabel: { color: palette.mountainDeep, fontSize: 12, fontWeight: '700' },
+  revealLabel: { color: palette.stoneDeep, fontSize: 12, fontWeight: '700' },
   textAction: { minHeight: 44, justifyContent: 'center' },
   smallTextAction: { minHeight: 28 },
-  textActionLabel: { color: palette.blueDeep, fontSize: 13, fontWeight: '700' },
+  textActionLabel: {
+    color: palette.primaryDeep,
+    fontSize: 13,
+    fontWeight: '700',
+  },
   smallTextActionLabel: { fontSize: 11 },
   button: {
     minHeight: 54,
@@ -695,7 +699,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   secondaryButton: {
-    backgroundColor: palette.mountainSoft,
+    backgroundColor: palette.stoneSoft,
     borderWidth: 1,
     borderColor: palette.line,
     minHeight: 48,
@@ -710,7 +714,7 @@ const styles = StyleSheet.create({
     fontSize: 21,
     lineHeight: 24,
     fontWeight: '800',
-    color: palette.blue,
+    color: palette.primary,
   },
   buttonLabel: {
     color: palette.surface,
@@ -720,17 +724,17 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   buttonArrow: { color: palette.surface, fontSize: 23, lineHeight: 25 },
-  secondaryLabel: { color: palette.mountainDeep },
+  secondaryLabel: { color: palette.stoneDeep },
   disabled: { opacity: 0.55 },
   pressed: { opacity: 0.7 },
   separator: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   divider: { height: 1, backgroundColor: palette.line, flex: 1 },
   caption: { color: palette.muted, fontSize: 12, textAlign: 'center' },
   notice: {
-    color: palette.mountainDeep,
+    color: palette.stoneDeep,
     fontSize: 14,
     lineHeight: 21,
-    backgroundColor: palette.mountainSoft,
+    backgroundColor: palette.stoneSoft,
     padding: 14,
     borderRadius: 14,
   },

@@ -18,7 +18,7 @@ type StreakModule = {
 
 const native =
   Platform.OS === 'android'
-    ? requireOptionalNativeModule<StreakModule>('BabelStreak')
+    ? requireOptionalNativeModule<StreakModule>('BetaStreak')
     : null;
 
 export function isStreakNativeAvailable(): boolean {

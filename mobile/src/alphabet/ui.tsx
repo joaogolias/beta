@@ -58,7 +58,7 @@ const kanjiStyles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderRadius: 20,
-    backgroundColor: palette.mountainSoft,
+    backgroundColor: palette.stoneSoft,
     borderWidth: 1,
     borderColor: palette.line,
   },
@@ -72,7 +72,7 @@ const kanjiStyles = StyleSheet.create({
   },
   faceLabel: {
     alignSelf: 'flex-start',
-    color: palette.mountainDeep,
+    color: palette.stoneDeep,
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 2,
@@ -80,7 +80,7 @@ const kanjiStyles = StyleSheet.create({
   symbol: {
     fontSize: 96,
     lineHeight: 132,
-    color: palette.blue,
+    color: palette.primary,
     paddingVertical: 14,
   },
   section: { gap: 5 },
@@ -128,7 +128,7 @@ export function Action({
     >
       {busy && (
         <ActivityIndicator
-          color={secondary ? palette.mountainDeep : palette.surface}
+          color={secondary ? palette.stoneDeep : palette.surface}
         />
       )}
       <Text style={[ui.buttonText, secondary && ui.secondaryText]}>
@@ -200,7 +200,7 @@ export function Notice({
 export function Loading({ label = 'Carregando…' }: { label?: string }) {
   return (
     <View style={ui.loading} accessibilityLiveRegion="polite">
-      <ActivityIndicator color={palette.blue} />
+      <ActivityIndicator color={palette.primary} />
       <Text style={ui.body}>{label}</Text>
     </View>
   );
@@ -374,7 +374,7 @@ export const ui = StyleSheet.create({
   character: {
     fontSize: 64,
     lineHeight: 84,
-    color: palette.blue,
+    color: palette.primary,
     textAlign: 'center',
   },
   field: { gap: 7 },
@@ -391,7 +391,7 @@ export const ui = StyleSheet.create({
   multiline: { minHeight: 105, textAlignVertical: 'top' },
   button: {
     minHeight: 50,
-    backgroundColor: palette.blue,
+    backgroundColor: palette.primary,
     padding: 14,
     borderRadius: 14,
     alignItems: 'center',
@@ -406,11 +406,11 @@ export const ui = StyleSheet.create({
     textAlign: 'center',
   },
   secondaryButton: {
-    backgroundColor: palette.mountainSoft,
+    backgroundColor: palette.stoneSoft,
     borderWidth: 1,
     borderColor: palette.line,
   },
-  secondaryText: { color: palette.mountainDeep },
+  secondaryText: { color: palette.stoneDeep },
   disabled: { opacity: 0.5 },
   pressed: { opacity: 0.75 },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
@@ -423,16 +423,16 @@ export const ui = StyleSheet.create({
     justifyContent: 'center',
   },
   selectedChoice: {
-    borderColor: palette.blue,
-    backgroundColor: palette.blueSoft,
+    borderColor: palette.primary,
+    backgroundColor: palette.primarySoft,
   },
   choiceText: { color: palette.muted, fontWeight: '600' },
-  selectedChoiceText: { color: palette.blueDeep },
+  selectedChoiceText: { color: palette.primaryDeep },
   notice: {
-    color: palette.mountainDeep,
+    color: palette.stoneDeep,
     fontSize: 14,
     lineHeight: 21,
-    backgroundColor: palette.mountainSoft,
+    backgroundColor: palette.stoneSoft,
     padding: 12,
     borderRadius: 12,
   },

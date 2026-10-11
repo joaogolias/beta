@@ -10,6 +10,7 @@ import {
 import type { IbexMood } from '../../../shared/ibex';
 import { ibexArtwork, ibexPortrait } from './artwork';
 import { useMotionPreference } from '../study/useMotionPreference';
+import { palette } from '../theme';
 
 type Accent = {
   kind: 'sparkle' | 'sleep' | 'slip' | 'dust';
@@ -325,7 +326,7 @@ function MascotAccent({
             fontSize: extent,
             lineHeight: extent * 1.2,
             fontWeight: '700',
-            color: accent.kind === 'sparkle' ? '#E8B34E' : '#647FA3',
+            color: accent.kind === 'sparkle' ? palette.tertiary : palette.stone,
             includeFontPadding: false,
           }}
         >
@@ -337,8 +338,11 @@ function MascotAccent({
             width: accent.kind === 'slip' ? Math.max(1, size * 0.006) : extent,
             height: extent,
             borderRadius: extent,
-            backgroundColor: accent.kind === 'slip' ? '#8BA9C9' : '#EEF2F8',
-            borderColor: '#B9C8DA',
+            backgroundColor:
+              accent.kind === 'slip'
+                ? palette.secondarySoft
+                : palette.stoneSoft,
+            borderColor: palette.line,
             borderWidth: accent.kind === 'dust' ? 0.5 : 0,
             transform: accent.kind === 'slip' ? [{ rotate: '16deg' }] : [],
           }}

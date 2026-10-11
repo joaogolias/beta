@@ -11,23 +11,29 @@ if (!Number.isSafeInteger(versionCode) || versionCode < 1) {
 
 const config: ExpoConfig = {
   name: 'beta',
-  slug: 'babel-crux',
+  slug: 'beta',
   version: process.env.APP_VERSION ?? '0.1.0',
   platforms: ['android'],
   orientation: 'portrait',
   userInterfaceStyle: 'light',
-  scheme: appEnv === 'production' ? 'babelcrux' : 'babelcrux-dev',
-  icon: './assets/icon.png',
+  backgroundColor: '#F5F1E8',
+  scheme: appEnv === 'production' ? 'beta' : 'beta-dev',
+  icon: appEnv === 'production' ? './assets/icon.png' : './assets/icon-dev.png',
   android: {
-    package:
-      appEnv === 'production' ? 'com.babelcrux.app' : 'com.babelcrux.app.dev',
+    package: appEnv === 'production' ? 'com.beta.app' : 'com.beta.app.dev',
     versionCode,
     predictiveBackGestureEnabled: true,
     adaptiveIcon: {
-      foregroundImage: './assets/android-icon-foreground.png',
-      monochromeImage: './assets/android-icon-monochrome.png',
+      foregroundImage:
+        appEnv === 'production'
+          ? './assets/android-icon-foreground.png'
+          : './assets/android-icon-foreground-dev.png',
+      monochromeImage:
+        appEnv === 'production'
+          ? './assets/android-icon-monochrome.png'
+          : './assets/android-icon-monochrome-dev.png',
       backgroundImage: './assets/android-icon-background.png',
-      backgroundColor: '#66717C',
+      backgroundColor: '#696557',
     },
   },
   plugins: [

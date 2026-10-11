@@ -160,17 +160,9 @@ describe('dedicated JLPT offline attempts', () => {
       }
       return reply;
     };
-    await restarted.synchronize(
-      send,
-      async () => clone(server),
-      () => true,
-    );
+    await restarted.synchronizePending(send, () => true);
     expect(restarted.getSnapshot().status.pending).toBeGreaterThan(0);
-    await restarted.synchronize(
-      send,
-      async () => clone(server),
-      () => true,
-    );
+    await restarted.synchronizePending(send, () => true);
     expect(restarted.getSnapshot().status.pending).toBe(0);
     expect(server.jlptPapers).toHaveLength(1);
     expect(server.jlptAttempts).toHaveLength(1);
@@ -335,6 +327,7 @@ describe('explicit study-only offline mode', () => {
     const engine = createEngine(storage);
     await engine.load();
     const refresh = vi.fn(async () => undefined);
+    const flushPending = vi.fn(async () => undefined);
     const retry = vi.fn();
     const currentMode = { switchingMode: false, ...options };
     const assertCanEditLibrary = vi.fn(() => {
@@ -348,12 +341,13 @@ describe('explicit study-only offline mode', () => {
     hookTransport.context = {
       engine,
       refresh,
+      flushPending,
       retry,
       ...currentMode,
       assertCanEditLibrary,
     };
     hookTransport.mutation.mockReset();
-    return { engine, refresh, retry, currentMode };
+    return { engine, refresh, flushPending, retry, currentMode };
   }
 
   it.each([
@@ -372,7 +366,7 @@ describe('explicit study-only offline mode', () => {
     },
   );
 
-  it('saves content on the server and waits for the refreshed library without journaling it', async () => {
+  it('upserts the confirmed server document without journaling or refreshing unrelated catalogues', async () => {
     const { engine, refresh, retry } = await prepare({
       online: true,
       offlineMode: false,
@@ -385,12 +379,13 @@ describe('explicit study-only offline mode', () => {
     expect(hookTransport.mutation).toHaveBeenCalledWith(api.vocabulary.create, {
       card: vocabularyInput,
     });
-    expect(refresh).toHaveBeenCalledOnce();
+    expect(refresh).not.toHaveBeenCalled();
     expect(retry).not.toHaveBeenCalled();
     expect(engine.getSnapshot().status.pending).toBe(0);
+    expect(engine.getSnapshot().data!.cards).toContainEqual(card);
   });
 
-  it('keeps a confirmed online save usable when the following library download fails', async () => {
+  it('keeps a confirmed online edit usable without requesting another library download', async () => {
     const { engine, refresh } = await prepare({
       online: true,
       offlineMode: false,
@@ -414,6 +409,7 @@ describe('explicit study-only offline mode', () => {
       contentVersion: 2,
     });
     expect(engine.getSnapshot().status.pending).toBe(0);
+    expect(refresh).not.toHaveBeenCalled();
   });
 
   it('requires explicit offline consent before accepting a disconnected study answer', async () => {
@@ -445,7 +441,7 @@ describe('explicit study-only offline mode', () => {
   });
 
   it('preserves legacy library edits and blocks newer remote writes until their queue is sent', async () => {
-    const { engine, refresh } = await prepare({
+    const { engine, refresh, flushPending } = await prepare({
       online: true,
       offlineMode: false,
     });
@@ -460,15 +456,49 @@ describe('explicit study-only offline mode', () => {
         patch: { meanings: ['mudança nova'] },
       }),
     ).rejects.toThrow(/sincronização pendente/);
-    expect(refresh).toHaveBeenCalledOnce();
+    expect(flushPending).toHaveBeenCalledOnce();
+    expect(refresh).not.toHaveBeenCalled();
     expect(hookTransport.mutation).not.toHaveBeenCalled();
     expect(engine.getSnapshot().saved!.queue).toEqual(queue);
+  });
+  it('flushes a pending study before a confirmed library save without downloading catalogues', async () => {
+    const { engine, refresh, flushPending } = await prepare({
+      online: true,
+      offlineMode: false,
+    });
+    await engine.mutate('study:start', {
+      mode: 'direct',
+      order: 'sorted',
+      limit: 1,
+    });
+    const remote = server();
+    flushPending.mockImplementationOnce(async () => {
+      await engine.synchronizePending(remote.send, () => true);
+    });
+    const confirmed = {
+      ...water,
+      meanings: ['água doce'],
+      back: water.back.replace('água', 'água doce'),
+      contentVersion: 2,
+    };
+    hookTransport.mutation.mockResolvedValue(confirmed);
+    await useMutation(api.alphabet.update)({
+      id: water._id,
+      patch: { meanings: ['água doce'] },
+    });
+    expect(flushPending).toHaveBeenCalledOnce();
+    expect(refresh).not.toHaveBeenCalled();
+    expect(engine.getSnapshot().status.pending).toBe(0);
+    expect(engine.getSnapshot().data!.cards[0]).toMatchObject({
+      meanings: ['água doce'],
+      contentVersion: 2,
+    });
   });
 
   it.each(['offline', 'disconnected', 'switching'] as const)(
     'rechecks the current mode after draining older edits before sending a library mutation (%s)',
     async (change) => {
-      const { engine, refresh, currentMode } = await prepare({
+      const { engine, flushPending, currentMode } = await prepare({
         online: true,
         offlineMode: false,
       });
@@ -479,8 +509,8 @@ describe('explicit study-only offline mode', () => {
       const drained = deferred<void>();
       const resume = deferred<void>();
       const remote = server();
-      refresh.mockImplementationOnce(async () => {
-        await engine.synchronize(remote.send, remote.pull, () => true);
+      flushPending.mockImplementationOnce(async () => {
+        await engine.synchronizePending(remote.send, () => true);
         drained.resolve();
         await resume.promise;
       });
@@ -1215,6 +1245,101 @@ function server(base = saved().base) {
 }
 
 describe('offline durable queue and synchronization', () => {
+  it.each(['offline', 'stopped'] as const)(
+    'preserves the journal if cloud conflict resolution is cancelled by %s before its download finishes',
+    async (reason) => {
+      const storage = new MemoryPersistence();
+      const engine = createEngine(storage);
+      await engine.load();
+      await engine.mutate('study:start', {
+        mode: 'direct',
+        order: 'sorted',
+        limit: 1,
+      });
+      const before = clone(storage.stored);
+      const download = deferred<Data>();
+      let connected = true;
+      const resolving = engine.resolveConflict(
+        'cloud',
+        () => download.promise,
+        () => connected,
+      );
+      if (reason === 'offline') connected = false;
+      else engine.stop();
+      download.resolve(emptyData(profile));
+      await expect(resolving).rejects.toThrow('preservados');
+      expect(storage.stored).toEqual(before);
+      expect(engine.getSnapshot().status.pending).toBe(1);
+    },
+  );
+  it('reconciles study answers, aliases and durable ACKs without a catalogue download', async () => {
+    const storage = new MemoryPersistence();
+    const engine = createEngine(storage);
+    const remote = server();
+    await engine.load();
+    const session = (await engine.mutate('study:start', {
+      mode: 'direct',
+      order: 'sorted',
+      limit: 1,
+    })) as Doc<'studySessions'>;
+    const presentation = engine.getSnapshot().data!.presentations[0];
+    await engine.mutate('study:reveal', {
+      sessionId: session._id,
+      presentationId: presentation._id,
+    });
+    await engine.mutate('study:rate', {
+      sessionId: session._id,
+      presentationId: presentation._id,
+      rating: 'correct',
+    });
+    await engine.synchronizePending(remote.send, () => true);
+    const state = engine.getSnapshot();
+    expect(remote.requests.map(({ command }) => command.type)).toEqual([
+      'study.start',
+      'study.reveal',
+      'study.rate',
+    ]);
+    expect(state.status.pending).toBe(0);
+    expect(state.data!.sessions[0]).toMatchObject({
+      status: 'completed',
+      answered: 1,
+      correct: 1,
+    });
+    expect(state.data!.stats[0]).toMatchObject({ correct: 1, attempts: 1 });
+    expect(state.saved!.aliases[session._id]).toBe(remote.data.sessions[0]._id);
+    expect(storage.stored!.queue).toEqual([]);
+    expect(state.status.lastSyncedAt).not.toBeNull();
+  });
+
+  it('keeps a confirmed form save that finishes during an older catalogue download', async () => {
+    const engine = createEngine();
+    await engine.load();
+    const began = deferred<void>();
+    const download = deferred<Data>();
+    const syncing = engine.synchronize(
+      async () => ({ mappings: [] }),
+      async () => {
+        began.resolve();
+        return download.promise;
+      },
+      () => true,
+    );
+    await began.promise;
+    const confirmed = {
+      ...water,
+      meanings: ['água doce'],
+      back: water.back.replace('água', 'água doce'),
+      contentVersion: 2,
+    };
+    await engine.acceptRemoteContent(confirmed);
+    download.resolve(saved().base);
+    await syncing;
+    expect(engine.getSnapshot().data!.cards[0]).toMatchObject({
+      meanings: ['água doce'],
+      contentVersion: 2,
+    });
+    expect(engine.getSnapshot().status.pending).toBe(0);
+  });
   it('requires an explicit reading opt-out and derives vocabulary faces through editing, restart and synchronization', async () => {
     const storage = new MemoryPersistence({
       ...saved(),

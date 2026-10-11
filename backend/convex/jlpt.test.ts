@@ -16,6 +16,10 @@ import {
   type JlptLevel,
 } from '../../shared/jlpt';
 import type { OfflineCommand } from './offlineValidators';
+import {
+  createShikenForOwner,
+  getShikenContentForOwner,
+} from './jlptAuthorship';
 
 afterEach(() => vi.restoreAllMocks());
 const paper: PaperInput = {
@@ -72,17 +76,287 @@ async function setup() {
     subject: 'other',
     tokenIdentifier: `${learnerIdentity.issuer}|other`,
   });
-  await learner.mutation(api.users.ensureCurrentUser, {});
-  await other.mutation(api.users.ensureCurrentUser, {});
+  const owner = await learner.mutation(api.users.ensureCurrentUser, {});
+  const otherOwner = await other.mutation(api.users.ensureCurrentUser, {});
   let operation = 0;
   const apply = (
     command: OfflineCommand,
     operationId = `jlpt-operation-${++operation}`,
   ) => learner.mutation(api.offline.apply, { command, operationId });
-  return { backend, learner, other, apply };
+  return { backend, learner, other, apply, owner, otherOwner };
 }
 
 describe('JLPT practice papers and objective attempts', () => {
+  test('creates authoring requests idempotently against normalized original content after edits and archival', async () => {
+    const { backend, owner, learner } = await setup();
+    const input = { clientKey: 'authored-paper-001', paper };
+    const validateMedia = vi.fn(async () => {});
+    const created = await backend.run((ctx) =>
+      createShikenForOwner(ctx, owner._id, input, validateMedia),
+    );
+    const normalizedRetry = {
+      ...paper,
+      title: `  ${paper.title}  `,
+      questions: paper.questions.map((question) => ({
+        ...question,
+        prompt: ` ${question.prompt} `,
+        imageUrl: '  ',
+      })),
+    };
+    expect(
+      await backend.run((ctx) =>
+        createShikenForOwner(
+          ctx,
+          owner._id,
+          {
+            ...input,
+            paper: normalizedRetry,
+          },
+          validateMedia,
+        ),
+      ),
+    ).toEqual(created);
+    await learner.mutation(api.jlpt.update, {
+      id: created._id,
+      patch: {
+        title: 'Edição posterior',
+        questions: [{ ...paper.questions[0], explanation: 'Nova explicação.' }],
+      },
+      expectedContentVersion: 1,
+    });
+    const archived = await learner.mutation(api.jlpt.archive, {
+      id: created._id,
+    });
+    expect(
+      await backend.run((ctx) =>
+        createShikenForOwner(ctx, owner._id, input, validateMedia),
+      ),
+    ).toEqual(archived);
+    expect(validateMedia).toHaveBeenCalledExactlyOnceWith(
+      normalizePaper(paper),
+    );
+    await expect(
+      backend.run((ctx) =>
+        createShikenForOwner(ctx, owner._id, {
+          ...input,
+          paper: normalizePaper(archived),
+        }),
+      ),
+    ).rejects.toThrow('outro conteúdo');
+    expect(
+      await backend.run((ctx) => ctx.db.query('jlptPapers').collect()),
+    ).toHaveLength(1);
+    expect(
+      await backend.run((ctx) =>
+        ctx.db.query('jlptAuthorshipRequests').collect(),
+      ),
+    ).toHaveLength(1);
+  });
+
+  test('keeps creation keys and editorial readback isolated by owner and preserves mobile creation', async () => {
+    const { backend, owner, otherOwner, learner } = await setup();
+    const input = { clientKey: 'owner-scoped-paper', paper };
+    const first = await backend.run((ctx) =>
+      createShikenForOwner(ctx, owner._id, input),
+    );
+    const second = await backend.run((ctx) =>
+      createShikenForOwner(ctx, otherOwner._id, input),
+    );
+    expect(first._id).not.toBe(second._id);
+    await expect(
+      backend.run((ctx) =>
+        getShikenContentForOwner(ctx, owner._id, { id: second._id }),
+      ),
+    ).rejects.toThrow('indisponível');
+    const mobile = await learner.mutation(api.jlpt.create, { paper });
+    expect(mobile._id).not.toBe(first._id);
+    expect(
+      await backend.run((ctx) =>
+        ctx.db.query('jlptAuthorshipRequests').collect(),
+      ),
+    ).toHaveLength(2);
+  });
+
+  test('round-trips all 190 questions with answer keys, explanations, passages and media across editorial pages', async () => {
+    const { backend, owner } = await setup();
+    const fullPaper: PaperInput = {
+      ...paper,
+      questions: Array.from({ length: 190 }, (_, index) => ({
+        ...paper.questions[index % paper.questions.length],
+        id: `question-${index}`,
+        imageUrl: `https://example.com/figures/${index}.png`,
+      })),
+    };
+    const created = await backend.run((ctx) =>
+      createShikenForOwner(ctx, owner._id, {
+        clientKey: 'full-190-question-paper',
+        paper: fullPaper,
+      }),
+    );
+    const all: PaperInput['questions'] = [];
+    let offset: number | null = 0;
+    while (offset !== null) {
+      const page = await backend.run((ctx) =>
+        getShikenContentForOwner(ctx, owner._id, {
+          id: created._id,
+          questionOffset: offset!,
+          expectedContentVersion: created.contentVersion,
+        }),
+      );
+      expect(page).toMatchObject({
+        title: fullPaper.title,
+        level: fullPaper.level,
+        description: fullPaper.description,
+        source: fullPaper.source,
+        totalQuestions: 190,
+        questionOffset: offset,
+      });
+      all.push(...page.questions);
+      offset = page.nextQuestionOffset;
+    }
+    expect(all).toEqual(normalizePaper(fullPaper).questions);
+    expect(all).toHaveLength(190);
+  });
+
+  test('guards editorial pagination against invalid positions and changes between pages without truncating a question', async () => {
+    const { backend, owner, learner } = await setup();
+    const large = {
+      ...paper,
+      questions: [
+        ...[0, 1].map((index) => ({
+          ...paper.questions[2],
+          id: `long-${index}`,
+          prompt: 'p'.repeat(11_000),
+          passage: 't'.repeat(15_000),
+          explanation: 'e'.repeat(11_000),
+        })),
+        paper.questions[0],
+        paper.questions[1],
+        paper.questions[3],
+      ],
+    };
+    const created = await backend.run((ctx) =>
+      createShikenForOwner(ctx, owner._id, {
+        clientKey: 'large-editorial-pages',
+        paper: large,
+      }),
+    );
+    const page = await backend.run((ctx) =>
+      getShikenContentForOwner(ctx, owner._id, {
+        id: created._id,
+        questionLimit: 50,
+      }),
+    );
+    expect(page.questions).toEqual([large.questions[0]]);
+    expect(page.nextQuestionOffset).toBe(1);
+    for (const invalid of [
+      { questionOffset: -1 },
+      { questionOffset: 6 },
+      { questionOffset: 0.5 },
+      { questionLimit: 0 },
+      { questionLimit: 51 },
+      { questionOffset: 1 },
+      { expectedContentVersion: 0 },
+    ])
+      await expect(
+        backend.run((ctx) =>
+          getShikenContentForOwner(ctx, owner._id, {
+            id: created._id,
+            ...invalid,
+          }),
+        ),
+      ).rejects.toThrow();
+    await learner.mutation(api.jlpt.update, {
+      id: created._id,
+      patch: { title: 'Nova edição' },
+      expectedContentVersion: 1,
+    });
+    await expect(
+      backend.run((ctx) =>
+        getShikenContentForOwner(ctx, owner._id, {
+          id: created._id,
+          questionOffset: 1,
+          expectedContentVersion: page.contentVersion,
+        }),
+      ),
+    ).rejects.toThrow('Reinicie a leitura');
+  });
+
+  test('reuses paper validation before saving an authoring request', async () => {
+    const { backend, owner } = await setup();
+    await expect(
+      backend.run((ctx) =>
+        createShikenForOwner(
+          ctx,
+          owner._id,
+          { clientKey: 'unowned-media-paper', paper },
+          async () => {
+            throw new Error('Mídia não autorizada.');
+          },
+        ),
+      ),
+    ).rejects.toThrow('Mídia não autorizada');
+    await expect(
+      backend.run((ctx) =>
+        createShikenForOwner(ctx, owner._id, { clientKey: 'short', paper }),
+      ),
+    ).rejects.toThrow('chave');
+    await expect(
+      backend.run((ctx) =>
+        createShikenForOwner(ctx, owner._id, {
+          clientKey: 'invalid-paper-input',
+          paper: {
+            ...paper,
+            questions: [paper.questions[0], paper.questions[0]],
+          },
+        }),
+      ),
+    ).rejects.toThrow('único');
+    await expect(
+      backend.run((ctx) =>
+        createShikenForOwner(ctx, owner._id, {
+          clientKey: 'invalid-paper-count',
+          paper: {
+            ...paper,
+            questions: Array.from({ length: 201 }, (_, index) => ({
+              ...paper.questions[0],
+              id: `question-${index}`,
+            })),
+          },
+        }),
+      ),
+    ).rejects.toThrow('200 questões');
+    await expect(
+      backend.run((ctx) =>
+        createShikenForOwner(ctx, owner._id, {
+          clientKey: 'incomplete-paper-draft',
+          paper: { ...paper, questions: [paper.questions[0]] },
+        }),
+      ),
+    ).rejects.toThrow('pelo menos uma questão');
+    await expect(
+      backend.run((ctx) =>
+        createShikenForOwner(ctx, owner._id, {
+          clientKey: 'missing-listening-audio',
+          paper: {
+            ...paper,
+            questions: paper.questions.map((question) => ({
+              ...question,
+              audioUrl: undefined,
+            })),
+          },
+        }),
+      ),
+    ).rejects.toThrow('precisa de um áudio');
+    expect(
+      await backend.run((ctx) =>
+        ctx.db.query('jlptAuthorshipRequests').collect(),
+      ),
+    ).toHaveLength(0);
+    expect(
+      await backend.run((ctx) => ctx.db.query('jlptPapers').collect()),
+    ).toHaveLength(0);
+  });
   test('rejects an editor draft based on an older version without replacing newer content', async () => {
     const { learner } = await setup();
     const created = await learner.mutation(api.jlpt.create, { paper });

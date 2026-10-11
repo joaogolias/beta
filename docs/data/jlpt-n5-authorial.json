@@ -1,10 +1,10 @@
 {
-  "seedId": "babel-crux:dev:jlpt-n5-authorial-v1",
+  "seedId": "beta:dev:jlpt-n5-authorial-v1",
   "paper": {
     "title": "N5 · Treino autoral 01 — 20 questões",
     "level": "N5",
     "description": "Treino curto com 5 questões de kanji/vocabulário, 5 de gramática, 5 de leitura e 5 de escuta. Conteúdo autoral inspirado nos tipos de questão do JLPT N5; não é uma prova oficial nem uma reprodução de edições anteriores. Os áudios usam voz japonesa sintetizada. O resultado indica acertos, sem equivalência à pontuação oficial do JLPT.",
-    "source": "babel-crux:dev:jlpt-n5-authorial-v1 · Questões e roteiros autorais do Babel Crux, setembro de 2026. Referência de formatos: https://www.jlpt.jp/e/samples/sample09.html . Áudio sintetizado com Open JTalk, voz nitech-jp-atr503-m001, CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/); créditos: Nagoya Institute of Technology, Department of Computer Science (2003–2012), e Tokyo Institute of Technology, Interdisciplinary Graduate School of Science and Engineering (2003–2008). Sem vínculo ou endosso dessas instituições ou do JLPT.",
+    "source": "beta:dev:jlpt-n5-authorial-v1 · Questões e roteiros autorais do beta, setembro de 2026. Referência de formatos: https://www.jlpt.jp/e/samples/sample09.html . Áudio sintetizado com Open JTalk, voz nitech-jp-atr503-m001, CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/); créditos: Nagoya Institute of Technology, Department of Computer Science (2003–2012), e Tokyo Institute of Technology, Interdisciplinary Graduate School of Science and Engineering (2003–2008). Sem vínculo ou endosso dessas instituições ou do JLPT.",
     "questions": [
       {
         "id": "n5-authorial-v1-vocabulary-1",
